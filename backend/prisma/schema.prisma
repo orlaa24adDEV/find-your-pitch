@@ -43,4 +43,7 @@ model Booking {
   fieldId   Int
   user      User     @relation(fields: [userId], references: [id])
   field     Field    @relation(fields: [fieldId], references: [id])
+
+  //EVITAR DOBLE RESERVA
+  @@unique([fieldId, date, startTime])
 }

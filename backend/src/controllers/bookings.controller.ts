@@ -1,0 +1,39 @@
+import { Response, NextFunction } from "express";
+import { Request } from "express";
+import { createBooking, getUserBookings, getFieldBookings, cancelBooking } from "../services/bookings.service";
+
+export const create = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const booking = await createBooking(req.user!.id, req.body);
+    res.status(201).json(booking);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyBookings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const bookings = await getUserBookings(req.user!.id);
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getByField = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const bookings = await getFieldBookings(Number(req.params.fieldId));
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancel = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const booking = await cancelBooking(Number(req.params.id), req.user!.id);
+    res.json(booking);
+  } catch (error) {
+    next(error);
+  }
+};
