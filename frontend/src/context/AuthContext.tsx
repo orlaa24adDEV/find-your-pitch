@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, ReactNode } from "react";
+import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 
 interface User {
   id: number;
@@ -18,19 +18,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("token");
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    } else {
+      localStorage.removeItem("token");
+    }
+  }, [token]);
 
   const login = (user: User, token: string) => {
     setUser(user);
     setToken(token);
-    localStorage.setItem("token", token);
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("token");
   };
 
   return (
