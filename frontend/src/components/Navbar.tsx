@@ -5,32 +5,43 @@ const Navbar = () => {
   const { isAuthenticated, logout } = useAuth();
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-sm border-b border-ink-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="text-xl font-bold text-green-600">
-            Find Your Pitch
+          <Link to="/" className="text-xl font-bold">
+            <span className="text-ink">Find </span>
+            <span className="text-ink">Your </span>
+            <span className="text-pitch">Pitch</span>
           </Link>
-          <div className="flex gap-4">
-            <Link to="/" className="text-gray-700 hover:text-green-600">
-              Home
-            </Link>
+          <div className="flex items-center gap-6">
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-green-600">
-                  Dashboard
+                <Link
+                  to="/dashboard"
+                  className="text-ink-600 hover:text-pitch transition-colors duration-200"
+                >
+                  Mis reservas
                 </Link>
-                <button onClick={logout} className="text-red-500 hover:text-red-700">
-                  Logout
+                <button
+                  onClick={logout}
+                  className="text-red-500 hover:text-red-600 transition-colors duration-200"
+                >
+                  Cerrar sesión
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-green-600">
-                  Login
+                <Link
+                  to="/login"
+                  className="text-ink-600 hover:text-pitch transition-colors duration-200"
+                >
+                  Iniciar sesión
                 </Link>
-                <Link to="/register" className="text-gray-700 hover:text-green-600">
-                  Register
+                <Link
+                  to="/register"
+                  className="bg-pitch text-white px-4 py-2 rounded-lg hover:bg-pitch-600 transition-colors duration-200"
+                >
+                  Registrarse
                 </Link>
               </>
             )}
