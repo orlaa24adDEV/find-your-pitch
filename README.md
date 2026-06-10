@@ -187,7 +187,7 @@ VITE_API_URL=http://localhost:3000/api
 
 ### Reglas de contraseña
 
-- Mínimo 6 caracteres
+- Mínimo 8 caracteres
 - Al menos una mayúscula
 - Al menos un número
 - Al menos un carácter especial
