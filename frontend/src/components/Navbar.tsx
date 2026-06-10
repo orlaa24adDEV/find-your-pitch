@@ -16,12 +16,14 @@ const Navbar = () => {
           <div className="flex items-center gap-6">
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="text-ink-600 hover:text-pitch transition-colors duration-200"
-                >
-                  Mis reservas
-                </Link>
+                {user?.role !== "admin" && (
+                  <Link
+                    to="/dashboard"
+                    className="text-ink-600 hover:text-pitch transition-colors duration-200"
+                  >
+                    Mis reservas
+                  </Link>
+                )}
                 {user?.role === "admin" && (
                   <Link
                     to="/admin"
