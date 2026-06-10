@@ -68,7 +68,7 @@ const Home = () => {
           {fields.map((field) => (
             <Card
               key={field.id}
-              className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+              className="flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer"
               onClick={() => navigate(`/fields/${field.id}`)}
             >
               <div className="h-40 bg-gradient-to-br from-pitch-100 to-pitch-200 rounded-lg mb-4 flex items-center justify-center">
@@ -87,6 +87,7 @@ const Home = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-ink mb-1">{field.name}</h3>
+              <div className="flex-1" />
               <p className="text-sm text-ink-600 mb-1">
                 {field.sport} &middot; {field.location}
               </p>
