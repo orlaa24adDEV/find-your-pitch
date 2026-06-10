@@ -1,6 +1,14 @@
 import { Response, NextFunction } from "express";
 import { Request } from "express";
-import { createBooking, getUserBookings, getFieldBookings, cancelBooking } from "../services/bookings.service";
+import {
+  createBooking,
+  getUserBookings,
+  getUnpaidBookings,
+  getBookingById,
+  getFieldBookings,
+  cancelBooking,
+  payBooking,
+} from "../services/bookings.service";
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -20,6 +28,24 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+export const getUnpaid = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const bookings = await getUnpaidBookings(req.user!.id);
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const booking = await getBookingById(Number(req.params.id), req.user!.id);
+    res.json(booking);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getByField = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bookings = await getFieldBookings(Number(req.params.fieldId));
@@ -32,6 +58,15 @@ export const getByField = async (req: Request, res: Response, next: NextFunction
 export const cancel = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const booking = await cancelBooking(Number(req.params.id), req.user!.id);
+    res.json(booking);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const pay = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const booking = await payBooking(Number(req.params.id), req.user!.id);
     res.json(booking);
   } catch (error) {
     next(error);

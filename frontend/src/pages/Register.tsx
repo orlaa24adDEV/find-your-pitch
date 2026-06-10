@@ -91,7 +91,7 @@ const Register = () => {
         form.password,
         Number(form.age)
       );
-      login(data.user, data.token);
+      login(data.user, data.accessToken);
       navigate("/dashboard");
     } catch (err: any) {
       const message =

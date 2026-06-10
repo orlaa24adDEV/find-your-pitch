@@ -5,10 +5,10 @@ import Button from "../components/ui/Button";
 
 const statusBadge = (status: string) => {
   switch (status) {
-    case "pending":
+    case "confirmed":
       return (
-        <span className="bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">
-          Pendiente
+        <span className="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+          Confirmada
         </span>
       );
     case "cancelled":
@@ -102,7 +102,7 @@ const Dashboard = () => {
                   {formatDate(booking.date)} &middot; {booking.startTime} - {booking.endTime}
                 </p>
               </div>
-              {booking.status === "pending" && (
+              {booking.status === "confirmed" && (
                 <Button
                   variant="danger"
                   size="sm"

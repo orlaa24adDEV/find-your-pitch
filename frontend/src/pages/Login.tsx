@@ -45,7 +45,7 @@ const Login = () => {
 
     try {
       const data = await loginService(email.trim(), password);
-      login(data.user, data.token);
+      login(data.user, data.accessToken);
       navigate("/dashboard");
     } catch (err: any) {
       const message =

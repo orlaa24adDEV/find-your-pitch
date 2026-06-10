@@ -24,6 +24,22 @@ export const createBooking = async (userId: number, data: {
     throw Object.assign(new Error("Horario ya reservado"), { statusCode: 409 });
   }
 
+  const userOverlap = await prisma.booking.findMany({
+    where: {
+      userId,
+      date: new Date(data.date),
+      status: { in: ["unpaid", "confirmed"] },
+    },
+  });
+  for (const b of userOverlap) {
+    if (data.startTime < b.endTime && data.endTime > b.startTime) {
+      throw Object.assign(
+        new Error("Ya tienes una reserva en este horario"),
+        { statusCode: 409 }
+      );
+    }
+  }
+
   return prisma.booking.create({
     data: {
       userId,
@@ -31,17 +47,50 @@ export const createBooking = async (userId: number, data: {
       date: new Date(data.date),
       startTime: data.startTime,
       endTime: data.endTime,
+      status: "unpaid",
     },
     include: { field: true },
   });
 };
 
 export const getUserBookings = async (userId: number) => {
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+  await prisma.booking.deleteMany({
+    where: {
+      userId,
+      status: "cancelled",
+      updatedAt: { lt: fiveMinutesAgo },
+    },
+  });
+
   return prisma.booking.findMany({
-    where: { userId },
+    where: { userId, status: { not: "unpaid" } },
     include: { field: true },
     orderBy: { date: "desc" },
   });
+};
+
+export const getUnpaidBookings = async (userId: number) => {
+  return prisma.booking.findMany({
+    where: { userId, status: "unpaid" },
+    include: { field: true },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const getBookingById = async (id: number, userId: number) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id },
+    include: { field: true },
+  });
+  if (!booking) {
+    throw Object.assign(new Error("Reserva no encontrada"), { statusCode: 404 });
+  }
+  if (booking.userId !== userId) {
+    throw Object.assign(new Error("No autorizado"), { statusCode: 403 });
+  }
+  return booking;
 };
 
 export const getFieldBookings = async (fieldId: number) => {
@@ -63,6 +112,27 @@ export const cancelBooking = async (id: number, userId: number) => {
 
   return prisma.booking.update({
     where: { id },
-    data: { status: "cancelado" },
+    data: { status: "cancelled" },
+  });
+};
+
+export const payBooking = async (id: number, userId: number) => {
+  const booking = await prisma.booking.findUnique({ where: { id } });
+  if (!booking) {
+    throw Object.assign(new Error("Reserva no encontrada"), { statusCode: 404 });
+  }
+  if (booking.userId !== userId) {
+    throw Object.assign(new Error("No autorizado"), { statusCode: 403 });
+  }
+  if (booking.status !== "unpaid") {
+    throw Object.assign(new Error("La reserva ya está pagada o cancelada"), { statusCode: 400 });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  return prisma.booking.update({
+    where: { id },
+    data: { status: "confirmed" },
+    include: { field: true },
   });
 };

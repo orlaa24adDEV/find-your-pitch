@@ -2,6 +2,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const toImageUrl = (name: string) => {
+  const slug = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `/images/${slug}.png`;
+};
+
 const fields = [
   {
     name: "Campo de Fútbol San Ignacio (El Palo)",
@@ -149,10 +159,13 @@ async function main() {
   console.log("Limpiando campos existentes...");
   await prisma.booking.deleteMany();
   await prisma.field.deleteMany();
+  await prisma.$executeRawUnsafe(`ALTER SEQUENCE "Field_id_seq" RESTART WITH 1`);
 
   console.log("Insertando 20 campos de Málaga...");
   for (const field of fields) {
-    await prisma.field.create({ data: field });
+    await prisma.field.create({
+      data: { ...field, imageUrl: toImageUrl(field.name) },
+    });
   }
 
   console.log("✅ 20 campos creados correctamente");

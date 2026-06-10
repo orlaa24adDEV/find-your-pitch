@@ -1,4 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import { setAccessToken, setOnUnauthorized } from "../services/api";
+import { refreshSession, logoutSession } from "../services/auth.service";
 
 interface User {
   id: number;
@@ -10,52 +12,59 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (user: User, token: string) => void;
-  logout: () => void;
   isAuthenticated: boolean;
+  login: (user: User, accessToken: string) => void;
+  logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem("token");
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
-  }, [user]);
+    setOnUnauthorized(() => {
+      setUser(null);
+      setAccessToken(null);
+    });
+  }, []);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-    }
-  }, [token]);
+    const restore = async () => {
+      try {
+        const data = await refreshSession();
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+      } catch {
+        setUser(null);
+        setAccessToken(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    restore();
+  }, []);
 
-  const login = (user: User, token: string) => {
+  const login = (user: User, accessToken: string) => {
+    setAccessToken(accessToken);
     setUser(user);
-    setToken(token);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await logoutSession();
+    } catch {
+      // Even if the request fails, clear local state
+    }
+    setAccessToken(null);
     setUser(null);
-    setToken(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isAuthenticated: !!user }}
+      value={{ user, isAuthenticated: !!user, login, logout, loading }}
     >
       {children}
     </AuthContext.Provider>
