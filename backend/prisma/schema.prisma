@@ -27,6 +27,8 @@ model Field {
   sport       String
   priceHour   Float
   imageUrl    String?
+  lat         Float?
+  lng         Float?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   bookings    Booking[]

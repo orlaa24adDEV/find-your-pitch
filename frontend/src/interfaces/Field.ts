@@ -6,6 +6,8 @@ export interface Field {
   sport: string;
   priceHour: number;
   imageUrl?: string;
+  lat?: number;
+  lng?: number;
   createdAt: string;
   updatedAt: string;
 }

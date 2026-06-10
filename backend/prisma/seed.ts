@@ -19,6 +19,7 @@ const fields = [
     location: "Calle San Ignacio, 1, Málaga",
     sport: "Fútbol",
     priceHour: 35.00,
+    lat: 36.7198, lng: -4.3546,
   },
   {
     name: "Campo de Fútbol Romualdo Fernández (Ciudad Jardín)",
@@ -26,6 +27,7 @@ const fields = [
     location: "Avenida de Santiago Ramón y Cajal, 84, Málaga",
     sport: "Fútbol",
     priceHour: 30.00,
+    lat: 36.7426, lng: -4.4228,
   },
   {
     name: "Campo Municipal Mortadelo (Cruz de Humilladero)",
@@ -33,6 +35,7 @@ const fields = [
     location: "Calle Eslava, 14, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.7140, lng: -4.4309,
   },
   {
     name: "Campo de Fútbol Portada Alta",
@@ -40,6 +43,7 @@ const fields = [
     location: "Calle Cómpeta, 22, Málaga",
     sport: "Fútbol",
     priceHour: 40.00,
+    lat: 36.7194, lng: -4.4537,
   },
   {
     name: "Polideportivo El Cónsul (Teatinos)",
@@ -47,6 +51,7 @@ const fields = [
     location: "Calle Profesor García Duarte, 5, Málaga",
     sport: "Fútbol",
     priceHour: 35.00,
+    lat: 36.7330, lng: -4.4560,
   },
   {
     name: "Campo de Fútbol Guadaljaire",
@@ -54,6 +59,7 @@ const fields = [
     location: "Calle Estepona, 4, Málaga",
     sport: "Fútbol",
     priceHour: 30.00,
+    lat: 36.7092, lng: -4.4341,
   },
   {
     name: "Campo de Fútbol Roma Luz (La Luz)",
@@ -61,6 +67,7 @@ const fields = [
     location: "Avenida de Velázquez, 72, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.6945, lng: -4.4528,
   },
   {
     name: "Centro Deportivo Puerto de la Torre",
@@ -68,6 +75,7 @@ const fields = [
     location: "Calle Lope de Vega, 40, Málaga",
     sport: "Fútbol",
     priceHour: 40.00,
+    lat: 36.7324, lng: -4.4724,
   },
   {
     name: "Campo Municipal Las Virreinas",
@@ -75,6 +83,7 @@ const fields = [
     location: "Calle Jane Bowles, 11, Málaga",
     sport: "Fútbol",
     priceHour: 30.00,
+    lat: 36.7468, lng: -4.4264,
   },
   {
     name: "Campo de Fútbol Carlinda",
@@ -82,6 +91,7 @@ const fields = [
     location: "Calle Granja Suárez, 2, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.7297, lng: -4.4514,
   },
   {
     name: "Campo de Fútbol Tiro Pichón",
@@ -89,6 +99,7 @@ const fields = [
     location: "Avenida de Manuel Gorría, 31, Málaga",
     sport: "Fútbol",
     priceHour: 42.00,
+    lat: 36.7365, lng: -4.4205,
   },
   {
     name: "Campo Municipal San Julián",
@@ -96,6 +107,7 @@ const fields = [
     location: "Camino de los Prados, 55, Málaga",
     sport: "Fútbol",
     priceHour: 32.00,
+    lat: 36.6989, lng: -4.4734,
   },
   {
     name: "Campo de Fútbol Churriana",
@@ -103,6 +115,7 @@ const fields = [
     location: "Calle Camino del Retiro, 8, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.6692, lng: -4.5059,
   },
   {
     name: "Campo de Fútbol Campanillas",
@@ -110,6 +123,7 @@ const fields = [
     location: "Calle José Calderón, 42, Málaga",
     sport: "Fútbol",
     priceHour: 30.00,
+    lat: 36.7234, lng: -4.5382,
   },
   {
     name: "Polideportivo Ciudad de Málaga",
@@ -117,6 +131,7 @@ const fields = [
     location: "Avenida de Manuel Alvar, 2, Málaga",
     sport: "Fútbol",
     priceHour: 60.00,
+    lat: 36.6799, lng: -4.4588,
   },
   {
     name: "Campo de Fútbol Intelhorce",
@@ -124,6 +139,7 @@ const fields = [
     location: "Calle Intelhorce, 15, Málaga",
     sport: "Fútbol",
     priceHour: 30.00,
+    lat: 36.7049, lng: -4.4913,
   },
   {
     name: "Campo Municipal Nuevo San Andrés",
@@ -131,6 +147,7 @@ const fields = [
     location: "Calle Eduardo Carvajal, 6, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.7158, lng: -4.4414,
   },
   {
     name: "Campo de Fútbol La Unidad (Nueva Málaga)",
@@ -138,6 +155,7 @@ const fields = [
     location: "Calle Santa Rosa de Lima, 9, Málaga",
     sport: "Fútbol",
     priceHour: 35.00,
+    lat: 36.7211, lng: -4.4492,
   },
   {
     name: "Campo de Fútbol Los Corazones",
@@ -145,6 +163,7 @@ const fields = [
     location: "Calle Corazones, 3, Málaga",
     sport: "Fútbol",
     priceHour: 35.00,
+    lat: 36.7112, lng: -4.4493,
   },
   {
     name: "Campo de Fútbol El Torcal",
@@ -152,6 +171,7 @@ const fields = [
     location: "Calle Cádiz, 25, Málaga",
     sport: "Fútbol",
     priceHour: 45.00,
+    lat: 36.7297, lng: -4.4242,
   },
 ];
 

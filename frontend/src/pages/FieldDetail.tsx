@@ -7,6 +7,7 @@ import { Field } from "../interfaces/Field";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
+import MapPreview from "../components/MapPreview";
 
 const calcHours = (start: string, end: string) => {
   if (!start || !end) return 0;
@@ -134,13 +135,24 @@ const FieldDetail = () => {
           <p className="text-pitch font-bold text-2xl mb-6">
             {field.priceHour.toFixed(2)}€ / hora
           </p>
+          {field.lat && field.lng && (
+            <div className="mb-6">
+              <MapPreview
+                lat={field.lat}
+                lng={field.lng}
+                address={field.location}
+                name={field.name}
+              />
+            </div>
+          )}
         </div>
 
-        <div>
-          <Card>
-            <h2 className="text-xl font-semibold text-ink mb-4">
-              Reservar
-            </h2>
+        <div className="flex flex-col">
+          <Card className="flex-1">
+            <div className="flex flex-col h-full">
+              <h2 className="text-xl font-semibold text-ink mb-4">
+                Reservar
+              </h2>
 
             {bookingSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -155,52 +167,56 @@ const FieldDetail = () => {
             )}
 
             {isAuthenticated ? (
-              <div className="space-y-4">
-                <Input
-                  label="Fecha"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-                <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col flex-1">
+                <div className="space-y-4 flex-1">
                   <Input
-                    label="Hora inicio"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setStartTime(val);
-                      if (val) {
-                        const [h, m] = val.split(":").map(Number);
-                        const end = `${String((h + 1) % 24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                        setEndTime(end);
-                      }
-                    }}
+                    label="Fecha"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
                   />
-                  <Input
-                    label="Hora fin"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Hora inicio"
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setStartTime(val);
+                        if (val) {
+                          const [h, m] = val.split(":").map(Number);
+                          const end = `${String((h + 1) % 24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                          setEndTime(end);
+                        }
+                      }}
+                    />
+                    <Input
+                      label="Hora fin"
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between py-2 px-1">
-                  <span className="text-sm text-ink-600">
-                    {hours.toFixed(1)}h
-                  </span>
-                  <span className="text-xl font-bold text-pitch">
-                    {totalPrice.toFixed(2)}€
-                  </span>
+                <div className="space-y-4 mt-auto">
+                  <div className="flex items-center justify-between py-2 px-1">
+                    <span className="text-sm text-ink-600">
+                      {hours.toFixed(1)}h
+                    </span>
+                    <span className="text-xl font-bold text-pitch">
+                      {totalPrice.toFixed(2)}€
+                    </span>
+                  </div>
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    loading={bookingLoading}
+                    disabled={!date || !startTime || !endTime}
+                    onClick={handleBooking}
+                  >
+                    Reservar ahora
+                  </Button>
                 </div>
-                <Button
-                  variant="primary"
-                  className="w-full"
-                  loading={bookingLoading}
-                  disabled={!date || !startTime || !endTime}
-                  onClick={handleBooking}
-                >
-                  Reservar ahora
-                </Button>
               </div>
             ) : (
               <div className="text-center py-4">
@@ -214,6 +230,7 @@ const FieldDetail = () => {
                 </Link>
               </div>
             )}
+            </div>
           </Card>
         </div>
       </div>
