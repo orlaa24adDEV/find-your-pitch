@@ -8,7 +8,17 @@ import {
   getFieldBookings,
   cancelBooking,
   payBooking,
+  getAllBookings,
 } from "../services/bookings.service";
+
+export const getAll = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const bookings = await getAllBookings();
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {

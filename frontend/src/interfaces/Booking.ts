@@ -9,6 +9,7 @@ export interface Booking {
   userId: number;
   fieldId: number;
   field?: Field;
+  user?: { id: number; name: string; email: string };
   createdAt: string;
   updatedAt: string;
 }

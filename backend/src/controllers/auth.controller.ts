@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import prisma from "../config/db";
 import { registerUser, loginUser, refreshTokens } from "../services/auth.service";
 
 const REFRESH_COOKIE = "refreshToken";
@@ -15,6 +16,19 @@ const setRefreshCookie = (res: Response, token: string) => {
 
 const clearRefreshCookie = (res: Response) => {
   res.clearCookie(REFRESH_COOKIE, { path: "/api/auth" });
+};
+
+export const promoteToAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await prisma.user.update({
+      where: { id: Number(req.params.id) },
+      data: { role: "admin" },
+      select: { id: true, name: true, email: true, role: true },
+    });
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getAllFields, getFieldById, createField, searchFields } from "../services/fields.service";
+import { getAllFields, getFieldById, createField, searchFields, updateField, deleteField } from "../services/fields.service";
 
 export const getAll = async (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -23,6 +23,24 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const field = await createField(req.body);
     res.status(201).json(field);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const update = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const field = await updateField(Number(req.params.id), req.body);
+    res.json(field);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const remove = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await deleteField(Number(req.params.id));
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

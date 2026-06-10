@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getAll,
   create,
   getMyBookings,
   getUnpaid,
@@ -9,11 +10,13 @@ import {
   pay,
 } from "../controllers/bookings.controller";
 import { authenticate } from "../middlewares/auth.middleware";
+import { requireAdmin } from "../middlewares/admin.middleware";
 
 const router = Router();
 
 router.use(authenticate);
 
+router.get("/all", requireAdmin, getAll);
 router.post("/", create);
 router.get("/my", getMyBookings);
 router.get("/unpaid", getUnpaid);

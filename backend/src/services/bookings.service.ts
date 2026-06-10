@@ -116,6 +116,13 @@ export const cancelBooking = async (id: number, userId: number) => {
   });
 };
 
+export const getAllBookings = async () => {
+  return prisma.booking.findMany({
+    include: { field: true, user: { select: { id: true, name: true, email: true } } },
+    orderBy: { date: "desc" },
+  });
+};
+
 export const payBooking = async (id: number, userId: number) => {
   const booking = await prisma.booking.findUnique({ where: { id } });
   if (!booking) {

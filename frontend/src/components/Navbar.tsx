@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <nav className="bg-white shadow-sm border-b border-ink-100">
@@ -22,6 +22,14 @@ const Navbar = () => {
                 >
                   Mis reservas
                 </Link>
+                {user?.role === "admin" && (
+                  <Link
+                    to="/admin"
+                    className="text-ink-600 hover:text-pitch transition-colors duration-200 font-medium"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button
                   onClick={logout}
                   className="text-red-500 hover:text-red-600 transition-colors duration-200"

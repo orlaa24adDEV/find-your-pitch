@@ -1,0 +1,390 @@
+import { useState, useEffect, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Field } from "../interfaces/Field";
+import { Booking } from "../interfaces/Booking";
+import { getFields } from "../services/fields.service";
+import { getAllBookings, createField, updateField, deleteField } from "../services/admin.service";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+
+type Tab = "fields" | "bookings";
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const statusBadge = (status: string) => {
+  switch (status) {
+    case "confirmed":
+      return (
+        <span className="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+          Confirmada
+        </span>
+      );
+    case "cancelled":
+      return (
+        <span className="bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">
+          Cancelada
+        </span>
+      );
+    case "unpaid":
+      return (
+        <span className="bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">
+          Pendiente de pago
+        </span>
+      );
+    default:
+      return (
+        <span className="bg-ink-100 text-ink-600 text-xs font-medium px-2.5 py-1 rounded-full">
+          {status}
+        </span>
+      );
+  }
+};
+
+const Admin = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("fields");
+  const [fields, setFields] = useState<Field[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [editingField, setEditingField] = useState<Field | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+
+  const emptyForm = {
+    name: "",
+    description: "",
+    location: "",
+    sport: "",
+    priceHour: 0,
+    imageUrl: "",
+    lat: 0,
+    lng: 0,
+  };
+  const [form, setForm] = useState(emptyForm);
+
+  const fetchFields = async () => {
+    try {
+      const data = await getFields();
+      setFields(data);
+    } catch {
+      setError("Error al cargar campos");
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const data = await getAllBookings();
+      setBookings(data);
+    } catch {
+      setError("Error al cargar reservas");
+    }
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (tab === "fields") {
+        await fetchFields();
+      } else {
+        await fetchBookings();
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [tab]);
+
+  const openCreate = () => {
+    setForm(emptyForm);
+    setEditingField(null);
+    setFormOpen(true);
+  };
+
+  const openEdit = (field: Field) => {
+    setForm({
+      name: field.name,
+      description: field.description,
+      location: field.location,
+      sport: field.sport,
+      priceHour: field.priceHour,
+      imageUrl: field.imageUrl || "",
+      lat: field.lat || 0,
+      lng: field.lng || 0,
+    });
+    setEditingField(field);
+    setFormOpen(true);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingField) {
+        await updateField(editingField.id, form);
+      } else {
+        await createField({
+          ...form,
+          priceHour: Number(form.priceHour),
+          lat: form.lat ? Number(form.lat) : undefined,
+          lng: form.lng ? Number(form.lng) : undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+      }
+      setFormOpen(false);
+      setEditingField(null);
+      await fetchFields();
+    } catch {
+      setError("Error al guardar el campo");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Eliminar este campo? Se borrarán todas sus reservas.")) return;
+    try {
+      await deleteField(id);
+      await fetchFields();
+    } catch {
+      setError("Error al eliminar el campo");
+    }
+  };
+
+  if (!user || user.role !== "admin") {
+    navigate("/dashboard", { replace: true });
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-2xl font-bold text-ink mb-6">Panel de administración</h1>
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <div className="h-5 bg-ink-100 rounded w-1/3 mb-2" />
+              <div className="h-4 bg-ink-100 rounded w-1/2" />
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-12 text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button variant="outline" onClick={loadData}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-12">
+      <h1 className="text-2xl font-bold text-ink mb-6">Panel de administración</h1>
+
+      {/* Tabs */}
+      <div className="flex gap-4 mb-8 border-b border-ink-100">
+        <button
+          onClick={() => setTab("fields")}
+          className={`pb-3 text-sm font-medium transition-colors ${
+            tab === "fields"
+              ? "text-pitch border-b-2 border-pitch"
+              : "text-ink-600 hover:text-ink"
+          }`}
+        >
+          Campos ({fields.length})
+        </button>
+        <button
+          onClick={() => setTab("bookings")}
+          className={`pb-3 text-sm font-medium transition-colors ${
+            tab === "bookings"
+              ? "text-pitch border-b-2 border-pitch"
+              : "text-ink-600 hover:text-ink"
+          }`}
+        >
+          Reservas ({bookings.length})
+        </button>
+      </div>
+
+      {tab === "fields" && (
+        <>
+          <div className="flex justify-end mb-4">
+            <Button variant="primary" onClick={openCreate}>
+              + Nuevo campo
+            </Button>
+          </div>
+
+          {/* Create/Edit form */}
+          {formOpen && (
+            <Card className="mb-6">
+              <h2 className="text-lg font-semibold text-ink mb-4">
+                {editingField ? "Editar campo" : "Nuevo campo"}
+              </h2>
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Deporte</label>
+                  <input
+                    type="text"
+                    value={form.sport}
+                    onChange={(e) => setForm({ ...form, sport: e.target.value })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-ink-600 mb-1">Descripción</label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                    rows={3}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Ubicación</label>
+                  <input
+                    type="text"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Precio por hora (€)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={form.priceHour}
+                    onChange={(e) => setForm({ ...form, priceHour: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">URL de imagen</label>
+                  <input
+                    type="text"
+                    value={form.imageUrl}
+                    onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Latitud</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={form.lat}
+                    onChange={(e) => setForm({ ...form, lat: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-ink-600 mb-1">Longitud</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={form.lng}
+                    onChange={(e) => setForm({ ...form, lng: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                  />
+                </div>
+                <div className="md:col-span-2 flex gap-3 justify-end">
+                  <Button variant="outline" onClick={() => setFormOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button variant="primary" type="submit">
+                    {editingField ? "Guardar cambios" : "Crear campo"}
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          )}
+
+          {/* Fields list */}
+          <div className="space-y-3">
+            {fields.map((field) => (
+              <Card key={field.id} className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-semibold text-ink">{field.name}</h3>
+                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                      {field.sport}
+                    </span>
+                  </div>
+                  <p className="text-sm text-ink-600">{field.location}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-4">
+                  <Button variant="outline" size="sm" onClick={() => openEdit(field)}>
+                    Editar
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(field.id)}>
+                    Eliminar
+                  </Button>
+                </div>
+              </Card>
+            ))}
+            {fields.length === 0 && (
+              <p className="text-center text-ink-600 py-8">No hay campos todavía</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {tab === "bookings" && (
+        <div className="space-y-3">
+          {bookings.map((booking) => (
+            <Card key={booking.id} className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-semibold text-ink">
+                    {booking.field?.name || `Campo #${booking.fieldId}`}
+                  </h3>
+                  {statusBadge(booking.status)}
+                </div>
+                <p className="text-sm text-ink-600">
+                  {formatDate(booking.date)} &middot; {booking.startTime} - {booking.endTime}
+                </p>
+                <p className="text-xs text-ink-500 mt-1">
+                  Usuario: {booking.user?.name || `#${booking.userId}`} ({booking.user?.email || ""})
+                </p>
+              </div>
+            </Card>
+          ))}
+          {bookings.length === 0 && (
+            <p className="text-center text-ink-600 py-8">No hay reservas</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Admin;
