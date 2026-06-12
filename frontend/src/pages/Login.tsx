@@ -46,7 +46,7 @@ const Login = () => {
     try {
       const data = await loginService(email.trim(), password);
       login(data.user, data.accessToken);
-      navigate("/dashboard");
+      navigate(data.user.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Error al iniciar sesión";

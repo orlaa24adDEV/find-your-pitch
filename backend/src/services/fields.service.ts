@@ -59,6 +59,14 @@ export const updateField = async (
   return prisma.field.update({ where: { id }, data });
 };
 
+export const updateFieldImage = async (id: number, imageUrl: string) => {
+  const field = await prisma.field.findUnique({ where: { id } });
+  if (!field) {
+    throw Object.assign(new Error("Pista no encontrada"), { statusCode: 404 });
+  }
+  return prisma.field.update({ where: { id }, data: { imageUrl } });
+};
+
 export const deleteField = async (id: number) => {
   const field = await prisma.field.findUnique({ where: { id } });
   if (!field) {

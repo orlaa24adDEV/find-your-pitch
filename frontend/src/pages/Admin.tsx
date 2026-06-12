@@ -1,12 +1,14 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Field } from "../interfaces/Field";
 import { Booking } from "../interfaces/Booking";
 import { getFields } from "../services/fields.service";
-import { getAllBookings, createField, updateField, deleteField } from "../services/admin.service";
+import { getAllBookings, createField, updateField, deleteField, uploadFieldImage } from "../services/admin.service";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
 
 type Tab = "fields" | "bookings";
 
@@ -59,6 +61,13 @@ const Admin = () => {
 
   const [editingField, setEditingField] = useState<Field | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (formOpen) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [formOpen]);
 
   const emptyForm = {
     name: "",
@@ -71,6 +80,8 @@ const Admin = () => {
     lng: 0,
   };
   const [form, setForm] = useState(emptyForm);
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFields = async () => {
     try {
@@ -148,6 +159,21 @@ const Admin = () => {
       await fetchFields();
     } catch {
       setError("Error al guardar el campo");
+    }
+  };
+
+  const handleFieldImageUpload = async (id: number, file: File) => {
+    setImageUploading(true);
+    try {
+      const updated = await uploadFieldImage(id, file);
+      setFields((prev) => prev.map((f) => (f.id === id ? updated : f)));
+      if (editingField?.id === id) {
+        setForm((prev) => ({ ...prev, imageUrl: updated.imageUrl || "" }));
+      }
+    } catch {
+      setError("Error al subir la imagen");
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -231,6 +257,7 @@ const Admin = () => {
 
           {/* Create/Edit form */}
           {formOpen && (
+            <div ref={formRef}>
             <Card className="mb-6">
               <h2 className="text-lg font-semibold text-ink mb-4">
                 {editingField ? "Editar campo" : "Nuevo campo"}
@@ -287,14 +314,56 @@ const Admin = () => {
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-ink-600 mb-1">URL de imagen</label>
-                  <input
-                    type="text"
-                    value={form.imageUrl}
-                    onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-ink-600 mb-1">Imagen del campo</label>
+                  <div className="flex items-center gap-4">
+                    {form.imageUrl ? (
+                      <img
+                        src={form.imageUrl.startsWith("http") ? form.imageUrl : `${API_URL}${form.imageUrl}`}
+                        alt="Preview"
+                        className="w-24 h-16 rounded-lg object-cover border border-ink-200"
+                      />
+                    ) : (
+                      <div className="w-24 h-16 rounded-lg bg-ink-100 flex items-center justify-center text-xs text-ink-500">
+                        Sin imagen
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && editingField) {
+                            handleFieldImageUpload(editingField.id, file);
+                          }
+                          e.target.value = "";
+                        }}
+                      />
+                      {editingField ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                          loading={imageUploading}
+                        >
+                          Subir imagen
+                        </Button>
+                      ) : (
+                        <p className="text-xs text-ink-500">Guarda el campo primero para subir imagen</p>
+                      )}
+                      <input
+                        type="text"
+                        value={form.imageUrl}
+                        onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                        placeholder="O pega una URL..."
+                        className="w-full px-3 py-1.5 text-sm border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-ink-600 mb-1">Latitud</label>
@@ -326,20 +395,32 @@ const Admin = () => {
                 </div>
               </form>
             </Card>
+            </div>
           )}
 
           {/* Fields list */}
           <div className="space-y-3">
             {fields.map((field) => (
-              <Card key={field.id} className="flex items-center justify-between">
-                <div className="flex-1">
+              <Card key={field.id} className="flex items-center gap-4">
+                {field.imageUrl ? (
+                  <img
+                    src={field.imageUrl.startsWith("http") ? field.imageUrl : `${API_URL}${field.imageUrl}`}
+                    alt={field.name}
+                    className="w-16 h-12 rounded-lg object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-12 rounded-lg bg-ink-100 flex items-center justify-center text-xs text-ink-500 shrink-0">
+                    Sin img
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-semibold text-ink">{field.name}</h3>
-                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    <h3 className="font-semibold text-ink truncate">{field.name}</h3>
+                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0">
                       {field.sport}
                     </span>
                   </div>
-                  <p className="text-sm text-ink-600">{field.location}</p>
+                  <p className="text-sm text-ink-600 truncate">{field.location}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-4">
                   <Button variant="outline" size="sm" onClick={() => openEdit(field)}>

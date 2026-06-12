@@ -2,12 +2,13 @@ import { createContext, useState, useContext, useEffect, ReactNode } from "react
 import { setAccessToken, setOnUnauthorized } from "../services/api";
 import { refreshSession, logoutSession } from "../services/auth.service";
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
   role: string;
   age?: number;
+  avatarUrl?: string | null;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   login: (user: User, accessToken: string) => void;
   logout: () => void;
   loading: boolean;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,6 +54,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
   };
 
+  const updateUser = (user: User) => {
+    setUser(user);
+  };
+
   const logout = async () => {
     try {
       await logoutSession();
@@ -64,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, logout, loading }}
+      value={{ user, isAuthenticated: !!user, login, logout, loading, updateUser }}
     >
       {children}
     </AuthContext.Provider>

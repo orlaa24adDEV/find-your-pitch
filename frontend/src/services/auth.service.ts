@@ -18,3 +18,18 @@ export const refreshSession = async () => {
 export const logoutSession = async () => {
   await api.post("/auth/logout");
 };
+
+export const getProfile = async () => {
+  const response = await api.get("/auth/me");
+  return response.data;
+};
+
+export const updateProfile = async (data: { name?: string; email?: string; age?: number }) => {
+  const response = await api.put("/auth/me", data);
+  return response.data;
+};
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  const response = await api.put("/auth/me/password", { currentPassword, newPassword });
+  return response.data;
+};

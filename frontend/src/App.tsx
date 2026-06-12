@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import FieldDetail from "./pages/FieldDetail";
 import PaymentPage from "./pages/PaymentPage";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 
 function App() {
   const { loading } = useAuth();
@@ -30,6 +31,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/fields/:id" element={<FieldDetail />} />
         <Route path="/payment/:bookingId" element={<PaymentPage />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useBookings } from "../hooks/useBookings";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
@@ -36,8 +37,14 @@ const formatDate = (dateStr: string) => {
 };
 
 const Dashboard = () => {
+  const { isAuthenticated } = useAuth();
   const { bookings, loading, error, cancel } = useBookings();
   const navigate = useNavigate();
+
+  if (!isAuthenticated) {
+    navigate("/login", { replace: true });
+    return null;
+  }
 
   if (loading) {
     return (

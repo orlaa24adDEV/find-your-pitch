@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../config/db";
-import { registerUser, loginUser, refreshTokens } from "../services/auth.service";
+import { registerUser, loginUser, refreshTokens, getUserById, updateUser, changeUserPassword, updateAvatarUrl } from "../services/auth.service";
 
 const REFRESH_COOKIE = "refreshToken";
 
@@ -16,6 +16,48 @@ const setRefreshCookie = (res: Response, token: string) => {
 
 const clearRefreshCookie = (res: Response) => {
   res.clearCookie(REFRESH_COOKIE, { path: "/api/auth" });
+};
+
+export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await getUserById(req.user!.id);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name, email, age } = req.body;
+    const user = await updateUser(req.user!.id, { name, email, age });
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    await changeUserPassword(req.user!.id, currentPassword, newPassword);
+    res.json({ message: "Contraseña actualizada" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadAvatarHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No se seleccionó ninguna imagen" });
+    }
+    const avatarUrl = `/images/avatars/${req.file.filename}`;
+    const user = await updateAvatarUrl(req.user!.id, avatarUrl);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const promoteToAdmin = async (req: Request, res: Response, next: NextFunction) => {
