@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../config/db";
 import { registerUser, loginUser, refreshTokens, getUserById, updateUser, changeUserPassword, updateAvatarUrl } from "../services/auth.service";
+import { compressAvatar } from "../utils/compressImage";
 
 const REFRESH_COOKIE = "refreshToken";
 
@@ -52,7 +53,8 @@ export const uploadAvatarHandler = async (req: Request, res: Response, next: Nex
     if (!req.file) {
       return res.status(400).json({ message: "No se seleccionó ninguna imagen" });
     }
-    const avatarUrl = `/images/avatars/${req.file.filename}`;
+    const newFilename = await compressAvatar(req.file.path);
+    const avatarUrl = `/images/avatars/${newFilename}`;
     const user = await updateAvatarUrl(req.user!.id, avatarUrl);
     res.json(user);
   } catch (error) {
