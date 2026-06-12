@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useBookings } from "../hooks/useBookings";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+import Pagination from "../components/ui/Pagination";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 const statusBadge = (status: string) => {
@@ -40,7 +41,7 @@ const formatDate = (dateStr: string) => {
 
 const Dashboard = () => {
   const { isAuthenticated } = useAuth();
-  const { bookings, loading, error, cancel } = useBookings();
+  const { bookings, loading, error, cancel, page, totalPages, goToPage } = useBookings();
   const navigate = useNavigate();
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -134,6 +135,8 @@ const Dashboard = () => {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
 
       <ConfirmModal
         open={cancelId !== null}

@@ -1,9 +1,10 @@
 import api from "./api";
 import { Field } from "../interfaces/Field";
 import { Booking } from "../interfaces/Booking";
+import { PaginatedResponse } from "../interfaces/PaginatedResponse";
 
-export const getAllBookings = async (): Promise<Booking[]> => {
-  const response = await api.get("/bookings/all");
+export const getAllBookings = async (page = 1, limit = 20): Promise<PaginatedResponse<Booking>> => {
+  const response = await api.get(`/bookings/all?page=${page}&limit=${limit}`);
   return response.data;
 };
 

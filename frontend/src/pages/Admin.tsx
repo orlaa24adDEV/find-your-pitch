@@ -7,6 +7,7 @@ import { getFields } from "../services/fields.service";
 import { getAllBookings, createField, updateField, deleteField, uploadFieldImage } from "../services/admin.service";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+import Pagination from "../components/ui/Pagination";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
 
@@ -55,7 +56,11 @@ const Admin = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("fields");
   const [fields, setFields] = useState<Field[]>([]);
+  const [fieldsPage, setFieldsPage] = useState(1);
+  const [fieldsTotalPages, setFieldsTotalPages] = useState(1);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingsPage, setBookingsPage] = useState(1);
+  const [bookingsTotalPages, setBookingsTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,19 +88,23 @@ const Admin = () => {
   const [imageUploading, setImageUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchFields = async () => {
+  const fetchFields = async (p = 1) => {
     try {
-      const data = await getFields();
-      setFields(data);
+      const result = await getFields(p, 20);
+      setFields(result.data);
+      setFieldsPage(result.page);
+      setFieldsTotalPages(result.totalPages);
     } catch {
       setError("Error al cargar campos");
     }
   };
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (p = 1) => {
     try {
-      const data = await getAllBookings();
-      setBookings(data);
+      const result = await getAllBookings(p, 20);
+      setBookings(result.data);
+      setBookingsPage(result.page);
+      setBookingsTotalPages(result.totalPages);
     } catch {
       setError("Error al cargar reservas");
     }
@@ -156,7 +165,7 @@ const Admin = () => {
       }
       setFormOpen(false);
       setEditingField(null);
-      await fetchFields();
+      await fetchFields(fieldsPage);
     } catch {
       setError("Error al guardar el campo");
     }
@@ -181,7 +190,7 @@ const Admin = () => {
     if (!window.confirm("¿Eliminar este campo? Se borrarán todas sus reservas.")) return;
     try {
       await deleteField(id);
-      await fetchFields();
+      await fetchFields(fieldsPage);
     } catch {
       setError("Error al eliminar el campo");
     }
@@ -435,6 +444,7 @@ const Admin = () => {
             {fields.length === 0 && (
               <p className="text-center text-ink-600 py-8">No hay campos todavía</p>
             )}
+            <Pagination page={fieldsPage} totalPages={fieldsTotalPages} onPageChange={(p) => { fetchFields(p); }} />
           </div>
         </>
       )}
@@ -462,6 +472,7 @@ const Admin = () => {
           {bookings.length === 0 && (
             <p className="text-center text-ink-600 py-8">No hay reservas</p>
           )}
+          <Pagination page={bookingsPage} totalPages={bookingsTotalPages} onPageChange={(p) => { fetchBookings(p); }} />
         </div>
       )}
     </div>

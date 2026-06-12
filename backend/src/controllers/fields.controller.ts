@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { getAllFields, getFieldById, createField, searchFields, updateField, deleteField, updateFieldImage } from "../services/fields.service";
+import { getPaginationParams } from "../utils/pagination";
 
-export const getAll = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const fields = await getAllFields();
-    res.json(fields);
+    const params = getPaginationParams(req.query.page as string, req.query.limit as string);
+    const result = await getAllFields(params);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -62,8 +64,9 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
 export const search = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = (req.query.q as string) || "";
-    const fields = await searchFields(query);
-    res.json(fields);
+    const params = getPaginationParams(req.query.page as string, req.query.limit as string);
+    const result = await searchFields(query, params);
+    res.json(result);
   } catch (error) {
     next(error);
   }

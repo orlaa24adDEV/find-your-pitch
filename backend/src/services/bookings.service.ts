@@ -1,4 +1,5 @@
 import prisma from "../config/db";
+import { PaginationParams, PaginatedResult, paginatedResult } from "../utils/pagination";
 
 const timeToMinutes = (t: string) => {
   const [h, m] = t.split(":").map(Number);
@@ -81,7 +82,7 @@ export const createBooking = async (userId: number, data: {
   });
 };
 
-export const getUserBookings = async (userId: number) => {
+export const getUserBookings = async (userId: number, params: PaginationParams): Promise<PaginatedResult<any>> => {
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
   await prisma.booking.deleteMany({
@@ -92,11 +93,18 @@ export const getUserBookings = async (userId: number) => {
     },
   });
 
-  return prisma.booking.findMany({
-    where: { userId, status: { not: "unpaid" } },
-    include: { field: true },
-    orderBy: { date: "desc" },
-  });
+  const where = { userId, status: { not: "unpaid" } };
+  const [data, total] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      include: { field: true },
+      orderBy: { date: "desc" },
+      skip: (params.page - 1) * params.limit,
+      take: params.limit,
+    }),
+    prisma.booking.count({ where }),
+  ]);
+  return paginatedResult(data, total, params);
 };
 
 export const getUnpaidBookings = async (userId: number) => {
@@ -144,11 +152,17 @@ export const cancelBooking = async (id: number, userId: number) => {
   });
 };
 
-export const getAllBookings = async () => {
-  return prisma.booking.findMany({
-    include: { field: true, user: { select: { id: true, name: true, email: true } } },
-    orderBy: { date: "desc" },
-  });
+export const getAllBookings = async (params: PaginationParams): Promise<PaginatedResult<any>> => {
+  const [data, total] = await Promise.all([
+    prisma.booking.findMany({
+      include: { field: true, user: { select: { id: true, name: true, email: true } } },
+      orderBy: { date: "desc" },
+      skip: (params.page - 1) * params.limit,
+      take: params.limit,
+    }),
+    prisma.booking.count(),
+  ]);
+  return paginatedResult(data, total, params);
 };
 
 export const payBooking = async (id: number, userId: number) => {

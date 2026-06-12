@@ -1,7 +1,7 @@
 import api from "./api";
 
-export const getMyBookings = async () => {
-  const response = await api.get("/bookings/my");
+export const getMyBookings = async (page = 1, limit = 10) => {
+  const response = await api.get(`/bookings/my?page=${page}&limit=${limit}`);
   return response.data;
 };
 

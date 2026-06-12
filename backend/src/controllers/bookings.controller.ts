@@ -10,10 +10,12 @@ import {
   payBooking,
   getAllBookings,
 } from "../services/bookings.service";
+import { getPaginationParams } from "../utils/pagination";
 
-export const getAll = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const bookings = await getAllBookings();
+    const params = getPaginationParams(req.query.page as string, req.query.limit as string);
+    const bookings = await getAllBookings(params);
     res.json(bookings);
   } catch (error) {
     next(error);
@@ -31,7 +33,8 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
 export const getMyBookings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const bookings = await getUserBookings(req.user!.id);
+    const params = getPaginationParams(req.query.page as string, req.query.limit as string);
+    const bookings = await getUserBookings(req.user!.id, params);
     res.json(bookings);
   } catch (error) {
     next(error);

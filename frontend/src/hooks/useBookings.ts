@@ -6,13 +6,17 @@ export const useBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchBookings = useCallback(async () => {
+  const fetchBookings = useCallback(async (p: number) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getMyBookings();
-      setBookings(data);
+      const result = await getMyBookings(p, 10);
+      setBookings(result.data || result);
+      setPage(result.page || 1);
+      setTotalPages(result.totalPages || 1);
     } catch {
       setError("Error al cargar tus reservas");
     } finally {
@@ -32,8 +36,8 @@ export const useBookings = () => {
   }, []);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchBookings(page);
+  }, [page, fetchBookings]);
 
-  return { bookings, loading, error, cancel, refetch: fetchBookings };
+  return { bookings, loading, error, cancel, page, totalPages, goToPage: setPage, refetch: () => fetchBookings(page) };
 };

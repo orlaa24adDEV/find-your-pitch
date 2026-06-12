@@ -1,7 +1,12 @@
 import prisma from "../config/db";
+import { PaginationParams, PaginatedResult, paginatedResult } from "../utils/pagination";
 
-export const getAllFields = async () => {
-  return prisma.field.findMany({ orderBy: { createdAt: "desc" } });
+export const getAllFields = async (params: PaginationParams): Promise<PaginatedResult<import("@prisma/client").Field>> => {
+  const [data, total] = await Promise.all([
+    prisma.field.findMany({ orderBy: { createdAt: "desc" }, skip: (params.page - 1) * params.limit, take: params.limit }),
+    prisma.field.count(),
+  ]);
+  return paginatedResult(data, total, params);
 };
 
 export const getFieldById = async (id: number) => {
@@ -26,17 +31,19 @@ export const createField = async (data: {
   return prisma.field.create({ data });
 };
 
-export const searchFields = async (query: string) => {
-  return prisma.field.findMany({
-    where: {
-      OR: [
-        { sport: { contains: query, mode: "insensitive" } },
-        { location: { contains: query, mode: "insensitive" } },
-        { name: { contains: query, mode: "insensitive" } },
-      ],
-    },
-    orderBy: { createdAt: "desc" },
-  });
+export const searchFields = async (query: string, params: PaginationParams): Promise<PaginatedResult<import("@prisma/client").Field>> => {
+  const where = {
+    OR: [
+      { sport: { contains: query, mode: "insensitive" as const } },
+      { location: { contains: query, mode: "insensitive" as const } },
+      { name: { contains: query, mode: "insensitive" as const } },
+    ],
+  };
+  const [data, total] = await Promise.all([
+    prisma.field.findMany({ where, orderBy: { createdAt: "desc" }, skip: (params.page - 1) * params.limit, take: params.limit }),
+    prisma.field.count({ where }),
+  ]);
+  return paginatedResult(data, total, params);
 };
 
 export const updateField = async (

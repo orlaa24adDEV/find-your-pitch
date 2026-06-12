@@ -1,8 +1,9 @@
 import api from "./api";
 import { Field } from "../interfaces/Field";
+import { PaginatedResponse } from "../interfaces/PaginatedResponse";
 
-export const getFields = async (): Promise<Field[]> => {
-  const response = await api.get("/fields");
+export const getFields = async (page = 1, limit = 12): Promise<PaginatedResponse<Field>> => {
+  const response = await api.get(`/fields?page=${page}&limit=${limit}`);
   return response.data;
 };
 
@@ -11,7 +12,7 @@ export const getFieldById = async (id: number): Promise<Field> => {
   return response.data;
 };
 
-export const searchFields = async (q: string): Promise<Field[]> => {
-  const response = await api.get(`/fields/search?q=${q}`);
+export const searchFields = async (q: string, page = 1, limit = 12): Promise<PaginatedResponse<Field>> => {
+  const response = await api.get(`/fields/search?q=${q}&page=${page}&limit=${limit}`);
   return response.data;
 };
