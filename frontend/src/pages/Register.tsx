@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { register as registerService } from "../services/auth.service";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
@@ -24,15 +25,14 @@ const Register = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   const updateField = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
-    setServerError("");
   };
 
   const validate = (): boolean => {
@@ -82,7 +82,6 @@ const Register = () => {
     if (!validate()) return;
 
     setLoading(true);
-    setServerError("");
 
     try {
       const data = await registerService(
@@ -92,11 +91,12 @@ const Register = () => {
         Number(form.age)
       );
       login(data.user, data.accessToken);
+      addToast("Cuenta creada correctamente", "success");
       navigate("/dashboard");
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Error al registrarse";
-      setServerError(message);
+      addToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -108,12 +108,6 @@ const Register = () => {
         <h1 className="text-2xl font-bold text-ink text-center mb-6">
           Crear cuenta
         </h1>
-
-        {serverError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 text-sm">
-            {serverError}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input

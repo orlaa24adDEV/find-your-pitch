@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { login as loginService } from "../services/auth.service";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
@@ -16,9 +17,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   const validate = (): boolean => {
@@ -41,16 +42,16 @@ const Login = () => {
     if (!validate()) return;
 
     setLoading(true);
-    setServerError("");
 
     try {
       const data = await loginService(email.trim(), password);
       login(data.user, data.accessToken);
+      addToast("Sesión iniciada correctamente", "success");
       navigate(data.user.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Error al iniciar sesión";
-      setServerError(message);
+      addToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -63,12 +64,6 @@ const Login = () => {
           Iniciar sesión
         </h1>
 
-        {serverError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 text-sm">
-            {serverError}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Email"
@@ -78,7 +73,6 @@ const Login = () => {
             onChange={(e) => {
               setEmail(e.target.value);
               setErrors((prev) => ({ ...prev, email: undefined }));
-              setServerError("");
             }}
             error={errors.email}
           />
@@ -89,7 +83,6 @@ const Login = () => {
             onChange={(e) => {
               setPassword(e.target.value);
               setErrors((prev) => ({ ...prev, password: undefined }));
-              setServerError("");
             }}
             error={errors.password}
           />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { useBookings } from "../hooks/useBookings";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
@@ -41,6 +42,7 @@ const formatDate = (dateStr: string) => {
 
 const Dashboard = () => {
   const { isAuthenticated } = useAuth();
+  const { addToast } = useToast();
   const { bookings, loading, error, cancel, page, totalPages, goToPage } = useBookings();
   const navigate = useNavigate();
   const [cancelId, setCancelId] = useState<number | null>(null);
@@ -50,6 +52,7 @@ const Dashboard = () => {
     if (!cancelId) return;
     setCancelling(true);
     await cancel(cancelId);
+    addToast("Reserva cancelada", "success");
     setCancelling(false);
     setCancelId(null);
   };

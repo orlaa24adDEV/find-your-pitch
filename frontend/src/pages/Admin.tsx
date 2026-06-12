@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { Field } from "../interfaces/Field";
 import { Booking } from "../interfaces/Booking";
 import { getFields } from "../services/fields.service";
@@ -53,6 +54,7 @@ const statusBadge = (status: string) => {
 
 const Admin = () => {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("fields");
   const [fields, setFields] = useState<Field[]>([]);
@@ -154,6 +156,7 @@ const Admin = () => {
     try {
       if (editingField) {
         await updateField(editingField.id, form);
+        addToast("Campo actualizado", "success");
       } else {
         await createField({
           ...form,
@@ -162,12 +165,13 @@ const Admin = () => {
           lng: form.lng ? Number(form.lng) : undefined,
           imageUrl: form.imageUrl || undefined,
         });
+        addToast("Campo creado", "success");
       }
       setFormOpen(false);
       setEditingField(null);
       await fetchFields(fieldsPage);
     } catch {
-      setError("Error al guardar el campo");
+      addToast("Error al guardar el campo", "error");
     }
   };
 
@@ -190,9 +194,10 @@ const Admin = () => {
     if (!window.confirm("¿Eliminar este campo? Se borrarán todas sus reservas.")) return;
     try {
       await deleteField(id);
+      addToast("Campo eliminado", "success");
       await fetchFields(fieldsPage);
     } catch {
-      setError("Error al eliminar el campo");
+      addToast("Error al eliminar el campo", "error");
     }
   };
 
