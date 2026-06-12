@@ -76,7 +76,10 @@ const DatePicker = ({ label, value, onChange, min }: DatePickerProps) => {
 
   useEffect(() => {
     if (!open) return;
-    const onScroll = () => setOpen(false);
+    const onScroll = (e: Event) => {
+      if (dropdownRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    };
     const onResize = () => setOpen(false);
     document.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onResize);

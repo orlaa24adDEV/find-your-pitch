@@ -12,6 +12,7 @@ const FieldDetail = lazy(() => import("./pages/FieldDetail"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Profile = lazy(() => import("./pages/Profile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-20">
@@ -44,6 +45,7 @@ function App() {
           <Route path="/payment/:bookingId" element={<PaymentPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </div>

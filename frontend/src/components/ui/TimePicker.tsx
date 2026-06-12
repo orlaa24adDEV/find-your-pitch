@@ -1,20 +1,25 @@
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 
 interface TimePickerProps {
   label?: string;
   value: string;
   onChange: (val: string) => void;
+  minTime?: string;
 }
 
-const SLOTS: string[] = [];
+const ALL_SLOTS: string[] = [];
 for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
-    SLOTS.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    ALL_SLOTS.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
   }
 }
 
-const TimePicker = ({ label, value, onChange }: TimePickerProps) => {
+const TimePicker = ({ label, value, onChange, minTime }: TimePickerProps) => {
+  const slots = useMemo(() => {
+    if (!minTime) return ALL_SLOTS;
+    return ALL_SLOTS.filter((s) => s > minTime);
+  }, [minTime]);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -63,7 +68,10 @@ const TimePicker = ({ label, value, onChange }: TimePickerProps) => {
 
   useEffect(() => {
     if (!open) return;
-    const onScroll = () => setOpen(false);
+    const onScroll = (e: Event) => {
+      if (listRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    };
     const onResize = () => setOpen(false);
     document.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onResize);
@@ -103,7 +111,7 @@ const TimePicker = ({ label, value, onChange }: TimePickerProps) => {
             style={dropdownStyle}
             className="bg-white border border-ink-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
           >
-            {SLOTS.map((slot) => (
+            {slots.map((slot) => (
               <button
                 key={slot}
                 type="button"

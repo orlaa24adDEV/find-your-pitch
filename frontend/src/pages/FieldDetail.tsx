@@ -208,6 +208,7 @@ const FieldDetail = () => {
                     <TimePicker
                       label="Hora fin"
                       value={endTime}
+                      minTime={startTime}
                       onChange={setEndTime}
                     />
                   </div>
