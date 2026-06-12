@@ -5,8 +5,9 @@ import { getFieldById } from "../services/fields.service";
 import { createBooking } from "../services/booking.service";
 import { Field } from "../interfaces/Field";
 import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
+import DatePicker from "../components/ui/DatePicker";
+import TimePicker from "../components/ui/TimePicker";
 import MapPreview from "../components/MapPreview";
 
 const timeToMinutes = (t: string) => {
@@ -164,12 +165,11 @@ const FieldDetail = () => {
           )}
         </div>
 
-        <div className="flex flex-col">
-          <Card className="flex-1">
-            <div className="flex flex-col h-full">
-              <h2 className="text-xl font-semibold text-ink mb-4">
-                Reservar
-              </h2>
+        <div>
+          <Card>
+            <h2 className="text-xl font-semibold text-ink mb-4">
+              Reservar
+            </h2>
 
             {bookingSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -184,22 +184,19 @@ const FieldDetail = () => {
             )}
 
             {isAuthenticated ? (
-              <div className="flex flex-col flex-1">
-                <div className="space-y-4 flex-1">
-                  <Input
+              <div>
+                <div className="space-y-4">
+                  <DatePicker
                     label="Fecha"
-                    type="date"
                     value={date}
                     min={today}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={setDate}
                   />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <TimePicker
                       label="Hora inicio"
-                      type="time"
                       value={startTime}
-                      onChange={(e) => {
-                        const val = e.target.value;
+                      onChange={(val) => {
                         setStartTime(val);
                         if (val) {
                           const [h, m] = val.split(":").map(Number);
@@ -208,18 +205,17 @@ const FieldDetail = () => {
                         }
                       }}
                     />
-                    <Input
+                    <TimePicker
                       label="Hora fin"
-                      type="time"
                       value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
+                      onChange={setEndTime}
                     />
                   </div>
                   {timeError && (
                     <p className="text-red-500 text-xs mt-1">{timeError}</p>
                   )}
                 </div>
-                <div className="space-y-4 mt-auto">
+                <div className="space-y-4 mt-6 pt-4 border-t border-ink-100">
                   <div className="flex items-center justify-between py-2 px-1">
                     <span className="text-sm text-ink-600">
                       {hours.toFixed(1)}h
@@ -251,7 +247,6 @@ const FieldDetail = () => {
                 </Link>
               </div>
             )}
-            </div>
           </Card>
         </div>
       </div>
