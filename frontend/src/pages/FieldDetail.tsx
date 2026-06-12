@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getFieldById } from "../services/fields.service";
@@ -9,11 +9,14 @@ import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
 import MapPreview from "../components/MapPreview";
 
+const timeToMinutes = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
 const calcHours = (start: string, end: string) => {
   if (!start || !end) return 0;
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const diff = eh * 60 + em - (sh * 60 + sm);
+  const diff = timeToMinutes(end) - timeToMinutes(start);
   return diff > 0 ? diff / 60 : 0;
 };
 
@@ -26,11 +29,24 @@ const FieldDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("00:00");
   const [endTime, setEndTime] = useState("01:00");
   const hours = calcHours(startTime, endTime);
   const totalPrice = field ? hours * field.priceHour : 0;
+
+  const timeError = useMemo(() => {
+    if (!date || !startTime || !endTime) return "";
+    if (endTime && timeToMinutes(endTime) <= timeToMinutes(startTime)) {
+      return "La hora de fin debe ser posterior a la de inicio";
+    }
+    if (date === today && timeToMinutes(startTime) <= timeToMinutes(new Date().toTimeString().slice(0, 5))) {
+      return "La hora de inicio debe ser posterior a la hora actual";
+    }
+    return "";
+  }, [date, startTime, endTime, today]);
 
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState("");
@@ -54,6 +70,7 @@ const FieldDetail = () => {
 
   const handleBooking = async () => {
     if (!date || !startTime || !endTime) return;
+    if (timeError) return;
 
     setBookingLoading(true);
     setBookingError("");
@@ -173,6 +190,7 @@ const FieldDetail = () => {
                     label="Fecha"
                     type="date"
                     value={date}
+                    min={today}
                     onChange={(e) => setDate(e.target.value)}
                   />
                   <div className="grid grid-cols-2 gap-3">
@@ -197,6 +215,9 @@ const FieldDetail = () => {
                       onChange={(e) => setEndTime(e.target.value)}
                     />
                   </div>
+                  {timeError && (
+                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
+                  )}
                 </div>
                 <div className="space-y-4 mt-auto">
                   <div className="flex items-center justify-between py-2 px-1">
@@ -211,7 +232,7 @@ const FieldDetail = () => {
                     variant="primary"
                     className="w-full"
                     loading={bookingLoading}
-                    disabled={!date || !startTime || !endTime}
+                    disabled={!date || !startTime || !endTime || !!timeError}
                     onClick={handleBooking}
                   >
                     Reservar ahora

@@ -1,5 +1,10 @@
 import prisma from "../config/db";
 
+const timeToMinutes = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
 export const createBooking = async (userId: number, data: {
   fieldId: number;
   date: string;
@@ -11,11 +16,34 @@ export const createBooking = async (userId: number, data: {
     throw Object.assign(new Error("Pista no encontrada"), { statusCode: 404 });
   }
 
+  const bookingDate = new Date(data.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (bookingDate < today) {
+    throw Object.assign(new Error("No puedes reservar en una fecha pasada"), { statusCode: 400 });
+  }
+
+  const startMinutes = timeToMinutes(data.startTime);
+  const endMinutes = timeToMinutes(data.endTime);
+
+  if (endMinutes <= startMinutes) {
+    throw Object.assign(new Error("La hora de fin debe ser posterior a la de inicio"), { statusCode: 400 });
+  }
+
+  if (bookingDate.getTime() === today.getTime()) {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    if (startMinutes <= currentMinutes) {
+      throw Object.assign(new Error("La hora de inicio debe ser posterior a la hora actual"), { statusCode: 400 });
+    }
+  }
+
   const existing = await prisma.booking.findUnique({
     where: {
       fieldId_date_startTime: {
         fieldId: data.fieldId,
-        date: new Date(data.date),
+        date: bookingDate,
         startTime: data.startTime,
       },
     },
@@ -27,7 +55,7 @@ export const createBooking = async (userId: number, data: {
   const userOverlap = await prisma.booking.findMany({
     where: {
       userId,
-      date: new Date(data.date),
+      date: bookingDate,
       status: { in: ["unpaid", "confirmed"] },
     },
   });
@@ -44,7 +72,7 @@ export const createBooking = async (userId: number, data: {
     data: {
       userId,
       fieldId: data.fieldId,
-      date: new Date(data.date),
+      date: bookingDate,
       startTime: data.startTime,
       endTime: data.endTime,
       status: "unpaid",
