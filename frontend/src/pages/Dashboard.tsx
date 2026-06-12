@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useBookings } from "../hooks/useBookings";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+import ConfirmModal from "../components/ui/ConfirmModal";
 
 const statusBadge = (status: string) => {
   switch (status) {
@@ -40,6 +42,16 @@ const Dashboard = () => {
   const { isAuthenticated } = useAuth();
   const { bookings, loading, error, cancel } = useBookings();
   const navigate = useNavigate();
+  const [cancelId, setCancelId] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleConfirmCancel = async () => {
+    if (!cancelId) return;
+    setCancelling(true);
+    await cancel(cancelId);
+    setCancelling(false);
+    setCancelId(null);
+  };
 
   if (!isAuthenticated) {
     navigate("/login", { replace: true });
@@ -113,7 +125,7 @@ const Dashboard = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => cancel(booking.id)}
+                  onClick={() => setCancelId(booking.id)}
                 >
                   Cancelar
                 </Button>
@@ -122,6 +134,17 @@ const Dashboard = () => {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        open={cancelId !== null}
+        title="Cancelar reserva"
+        message="¿Estás seguro de que quieres cancelar esta reserva? Esta acción no se puede deshacer."
+        confirmLabel="Sí, cancelar"
+        cancelLabel="Volver"
+        loading={cancelling}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => { setCancelId(null); setCancelling(false); }}
+      />
     </div>
   );
 };
