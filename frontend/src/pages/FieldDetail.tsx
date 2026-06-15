@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getFieldById } from "../services/fields.service";
 import { toggleFavorite } from "../services/favorites.service";
-import { createBooking } from "../services/booking.service";
+import { createBooking, getFieldAvailability, BookedSlot } from "../services/booking.service";
 import { Field } from "../interfaces/Field";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -40,6 +40,13 @@ const FieldDetail = () => {
   const hours = calcHours(startTime, endTime);
   const totalPrice = field ? hours * field.priceHour : 0;
 
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+
+  const disabledRanges = useMemo(() =>
+    bookedSlots.map((s) => ({ start: s.startTime, end: s.endTime })),
+  [bookedSlots]);
+
   const timeError = useMemo(() => {
     if (!date || !startTime || !endTime) return "";
     if (endTime && timeToMinutes(endTime) <= timeToMinutes(startTime)) {
@@ -71,6 +78,37 @@ const FieldDetail = () => {
     };
     fetchField();
   }, [id]);
+
+  useEffect(() => {
+    if (!date || !id) {
+      setBookedSlots([]);
+      return;
+    }
+    let cancelled = false;
+    setAvailabilityLoading(true);
+    getFieldAvailability(Number(id), date).then((data) => {
+      if (!cancelled) setBookedSlots(data.bookedSlots);
+    }).catch(() => {
+      if (!cancelled) setBookedSlots([]);
+    }).finally(() => {
+      if (!cancelled) setAvailabilityLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [date, id]);
+
+  const availableSlotsCount = useMemo(() => {
+    if (!bookedSlots.length) return 48;
+    const allSlots: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        allSlots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+      }
+    }
+    return allSlots.filter((slot) => {
+      const min = timeToMinutes(slot);
+      return !bookedSlots.some((b) => min >= timeToMinutes(b.startTime) && min < timeToMinutes(b.endTime));
+    }).length;
+  }, [bookedSlots]);
 
   const handleBooking = async () => {
     if (!date || !startTime || !endTime) return;
@@ -221,10 +259,29 @@ const FieldDetail = () => {
                     min={today}
                     onChange={setDate}
                   />
+
+                  {date && availabilityLoading && (
+                    <p className="text-xs text-ink-500">Cargando disponibilidad...</p>
+                  )}
+
+                  {date && !availabilityLoading && bookedSlots.length > 0 && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                      {48 - availableSlotsCount} slot(s) reservado(s) en esta fecha
+                      &middot; {availableSlotsCount} disponible(s)
+                    </div>
+                  )}
+
+                  {date && !availabilityLoading && bookedSlots.length === 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-700">
+                      Todos los horarios disponibles
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <TimePicker
                       label="Hora inicio"
                       value={startTime}
+                      disabledRanges={disabledRanges}
                       onChange={(val) => {
                         setStartTime(val);
                         if (val) {
@@ -238,6 +295,7 @@ const FieldDetail = () => {
                       label="Hora fin"
                       value={endTime}
                       minTime={startTime}
+                      disabledRanges={disabledRanges}
                       onChange={setEndTime}
                     />
                   </div>

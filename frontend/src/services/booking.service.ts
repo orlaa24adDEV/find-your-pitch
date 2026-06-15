@@ -34,3 +34,18 @@ export const payBooking = async (id: number) => {
   const response = await api.post(`/bookings/${id}/pay`);
   return response.data;
 };
+
+export interface BookedSlot {
+  startTime: string;
+  endTime: string;
+}
+
+export interface FieldAvailability {
+  date: string;
+  bookedSlots: BookedSlot[];
+}
+
+export const getFieldAvailability = async (fieldId: number, date: string): Promise<FieldAvailability> => {
+  const response = await api.get(`/fields/${fieldId}/availability?date=${date}`);
+  return response.data;
+};

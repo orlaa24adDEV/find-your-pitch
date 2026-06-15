@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAll, getById, create, update, remove, search, uploadImage } from "../controllers/fields.controller";
+import { getAll, getById, create, update, remove, search, uploadImage, getAvailability, getSports } from "../controllers/fields.controller";
 import { authenticate, optionalAuth } from "../middlewares/auth.middleware";
 import { requireAdmin } from "../middlewares/admin.middleware";
 import { uploadFieldImage } from "../middlewares/upload.middleware";
@@ -8,8 +8,10 @@ import { createFieldSchema, updateFieldSchema } from "../validations/schemas";
 
 const router = Router();
 
+router.get("/sports", getSports);
 router.get("/", optionalAuth, getAll);
 router.get("/search", optionalAuth, search);
+router.get("/:id/availability", getAvailability);
 router.get("/:id", optionalAuth, getById);
 router.post("/", authenticate, requireAdmin, validate(createFieldSchema), create);
 router.put("/:id", authenticate, requireAdmin, validate(updateFieldSchema), update);

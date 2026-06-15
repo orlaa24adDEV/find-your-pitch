@@ -1,11 +1,17 @@
 import { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 
+export interface TimeRange {
+  start: string;
+  end: string;
+}
+
 interface TimePickerProps {
   label?: string;
   value: string;
   onChange: (val: string) => void;
   minTime?: string;
+  disabledRanges?: TimeRange[];
 }
 
 const ALL_SLOTS: string[] = [];
@@ -15,11 +21,26 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
-const TimePicker = ({ label, value, onChange, minTime }: TimePickerProps) => {
+const timeToMinutes = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
+const isSlotDisabled = (slot: string, minTime?: string, disabledRanges?: TimeRange[]) => {
+  if (minTime && slot <= minTime) return true;
+  if (!disabledRanges) return false;
+  const slotMin = timeToMinutes(slot);
+  return disabledRanges.some((range) => {
+    const start = timeToMinutes(range.start);
+    const end = timeToMinutes(range.end);
+    return slotMin >= start && slotMin < end;
+  });
+};
+
+const TimePicker = ({ label, value, onChange, minTime, disabledRanges }: TimePickerProps) => {
   const slots = useMemo(() => {
-    if (!minTime) return ALL_SLOTS;
-    return ALL_SLOTS.filter((s) => s > minTime);
-  }, [minTime]);
+    return ALL_SLOTS.filter((slot) => !isSlotDisabled(slot, minTime, disabledRanges));
+  }, [minTime, disabledRanges]);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);

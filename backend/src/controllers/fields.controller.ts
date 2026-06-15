@@ -1,11 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { getAllFields, getFieldById, createField, searchFields, updateField, deleteField, updateFieldImage } from "../services/fields.service";
+import { getAllFields, getFieldById, createField, searchFields, updateField, deleteField, updateFieldImage, getFieldAvailability, getDistinctSports } from "../services/fields.service";
 import { getPaginationParams } from "../utils/pagination";
+
+const parseFilters = (query: any) => ({
+  sport: query.sport as string | undefined,
+  minPrice: query.minPrice ? Number(query.minPrice) : undefined,
+  maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
+});
 
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const params = getPaginationParams(req.query.page as string, req.query.limit as string);
-    const result = await getAllFields(params, req.user?.id);
+    const filters = parseFilters(req.query);
+    const result = await getAllFields(params, req.user?.id, filters);
     res.json(result);
   } catch (error) {
     next(error);
@@ -65,8 +72,28 @@ export const search = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const query = (req.query.q as string) || "";
     const params = getPaginationParams(req.query.page as string, req.query.limit as string);
-    const result = await searchFields(query, params, req.user?.id);
+    const filters = parseFilters(req.query);
+    const result = await searchFields(query, params, req.user?.id, filters);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAvailability = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const date = (req.query.date as string) || new Date().toISOString().split("T")[0];
+    const result = await getFieldAvailability(Number(req.params.id), date);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSports = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const sports = await getDistinctSports();
+    res.json(sports);
   } catch (error) {
     next(error);
   }
