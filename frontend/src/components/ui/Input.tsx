@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+import { InputHTMLAttributes, forwardRef, useId } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -7,14 +7,16 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, className = "", ...props }, ref) => {
+    const id = useId();
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-ink-600 mb-1">
+          <label htmlFor={id} className="block text-sm font-medium text-ink-600 mb-1">
             {label}
           </label>
         )}
         <input
+          id={label ? id : undefined}
           ref={ref}
           className={`w-full px-4 py-2.5 border rounded-lg text-ink placeholder-ink-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
             error

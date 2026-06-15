@@ -1,4 +1,4 @@
-import { useState, InputHTMLAttributes, forwardRef } from "react";
+import { useState, InputHTMLAttributes, forwardRef, useId } from "react";
 
 interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,16 +8,18 @@ interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ label, error, className = "", ...props }, ref) => {
     const [visible, setVisible] = useState(false);
+    const id = useId();
 
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-ink-600 mb-1">
+          <label htmlFor={id} className="block text-sm font-medium text-ink-600 mb-1">
             {label}
           </label>
         )}
         <div className="relative">
           <input
+            id={label ? id : undefined}
             ref={ref}
             type={visible ? "text" : "password"}
             className={`w-full px-4 py-2.5 pr-10 border rounded-lg text-ink placeholder-ink-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
