@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import router from "./routes/index";
@@ -10,8 +11,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://*.tile.openstreetmap.org"],
+      connectSrc: ["'self'", FRONTEND_URL],
+      fontSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+}));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: FRONTEND_URL,
   credentials: true,
 }));
 app.use(express.json());

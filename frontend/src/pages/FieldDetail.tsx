@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getFieldById } from "../services/fields.service";
+import { toggleFavorite } from "../services/favorites.service";
 import { createBooking } from "../services/booking.service";
 import { Field } from "../interfaces/Field";
 import Button from "../components/ui/Button";
@@ -29,6 +30,7 @@ const FieldDetail = () => {
   const [field, setField] = useState<Field | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [favorited, setFavorited] = useState(false);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -60,6 +62,7 @@ const FieldDetail = () => {
       try {
         const data = await getFieldById(Number(id));
         setField(data);
+        setFavorited(data.favorited || false);
       } catch {
         setError("Error al cargar el campo");
       } finally {
@@ -145,7 +148,33 @@ const FieldDetail = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h1 className="text-3xl font-bold text-ink mb-2">{field.name}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-ink">{field.name}</h1>
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const result = await toggleFavorite(field.id);
+                  setFavorited(result.favorited);
+                }}
+                className="p-1.5 rounded-full hover:bg-ink-100 transition-colors"
+              >
+                <svg
+                  className={`w-6 h-6 ${favorited ? "text-red-500 fill-red-500" : "text-ink-300"}`}
+                  fill={favorited ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
           <p className="text-ink-600 mb-4">
             {field.sport} &middot; {field.location}
           </p>

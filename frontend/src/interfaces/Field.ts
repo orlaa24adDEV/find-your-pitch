@@ -10,4 +10,5 @@ export interface Field {
   lng?: number;
   createdAt: string;
   updatedAt: string;
+  favorited?: boolean;
 }

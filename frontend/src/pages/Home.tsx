@@ -1,22 +1,76 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useFields } from "../hooks/useFields";
+import { useFavorites } from "../hooks/useFavorites";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Pagination from "../components/ui/Pagination";
 
+const HeartIcon = ({ filled, onClick }: { filled: boolean; onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm"
+  >
+    <svg
+      className={`w-5 h-5 ${filled ? "text-red-500 fill-red-500" : "text-ink-300"}`}
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+      />
+    </svg>
+  </button>
+);
+
 const Home = () => {
+  const { isAuthenticated } = useAuth();
   const { fields, loading, error, search, page, totalPages, goToPage } = useFields();
+  const { favFields, loadingFavs, favPage, favTotalPages, syncFavIds, fetchFavFields, toggle, isFavorite, goToFavPage } = useFavorites();
   const [query, setQuery] = useState("");
+  const [showFavs, setShowFavs] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      search(query);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query, search]);
+    if (!showFavs) {
+      const timer = setTimeout(() => {
+        search(query);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [query, search, showFavs]);
+
+  useEffect(() => {
+    if (!showFavs && fields.length > 0) {
+      syncFavIds(fields);
+    }
+  }, [fields, showFavs, syncFavIds]);
+
+  useEffect(() => {
+    if (showFavs) {
+      fetchFavFields(favPage);
+    }
+  }, [showFavs, favPage, fetchFavFields]);
+
+  const displayFields = showFavs ? favFields : fields;
+  const displayLoading = showFavs ? loadingFavs : loading;
+  const displayPage = showFavs ? favPage : page;
+  const displayTotalPages = showFavs ? favTotalPages : totalPages;
+
+  const handleToggleFav = async (fieldId: number) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    await toggle(fieldId);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -27,12 +81,43 @@ const Home = () => {
         <p className="text-lg text-ink-600 mb-8">
           Juega donde quieras, cuando quieras
         </p>
-        <div className="max-w-xl mx-auto">
-          <Input
-            placeholder="Buscar por deporte, ubicación..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+        <div className="max-w-xl mx-auto flex gap-3 items-center">
+          <div className="flex-1">
+            <Input
+              placeholder="Buscar por deporte, ubicación..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (showFavs) setShowFavs(false);
+              }}
+            />
+          </div>
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => setShowFavs(!showFavs)}
+              className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-colors ${
+                showFavs
+                  ? "bg-pitch text-white border-pitch"
+                  : "bg-white text-ink-600 border-ink-200 hover:border-pitch hover:text-pitch"
+              }`}
+            >
+              <svg
+                className={`w-4 h-4 ${showFavs ? "fill-white" : "fill-none"}`}
+                fill={showFavs ? "currentColor" : "none"}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+              {showFavs ? "Todos" : "Favoritos"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -45,7 +130,7 @@ const Home = () => {
         </div>
       )}
 
-      {loading && (
+      {displayLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -58,21 +143,34 @@ const Home = () => {
         </div>
       )}
 
-      {!loading && !error && fields.length === 0 && (
+      {!displayLoading && !error && displayFields.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-ink-600 text-lg">No hay campos disponibles</p>
+          <p className="text-ink-600 text-lg">
+            {showFavs ? "No tienes campos favoritos" : "No hay campos disponibles"}
+          </p>
+          {showFavs && (
+            <Button variant="outline" onClick={() => setShowFavs(false)} className="mt-4">
+              Ver todos los campos
+            </Button>
+          )}
         </div>
       )}
 
-      {!loading && !error && fields.length > 0 && (
+      {!displayLoading && !error && displayFields.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fields.map((field) => (
+            {displayFields.map((field) => (
               <Card
                 key={field.id}
-                className="flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                className="flex flex-col hover:shadow-md transition-shadow duration-200 cursor-pointer relative"
                 onClick={() => navigate(`/fields/${field.id}`)}
               >
+                {isAuthenticated && (
+                  <HeartIcon
+                    filled={isFavorite(field.id)}
+                    onClick={() => handleToggleFav(field.id)}
+                  />
+                )}
                 <div className="h-40 rounded-lg mb-4 overflow-hidden flex items-center justify-center bg-gradient-to-br from-pitch-100 to-pitch-200">
                   {field.imageUrl ? (
                     <img
@@ -108,7 +206,7 @@ const Home = () => {
               </Card>
             ))}
           </div>
-          <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <Pagination page={displayPage} totalPages={displayTotalPages} onPageChange={showFavs ? goToFavPage : goToPage} />
         </>
       )}
     </div>

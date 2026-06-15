@@ -18,6 +18,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   bookings  Booking[]
+  favorites Favorite[]
 }
 
 model Field {
@@ -33,6 +34,17 @@ model Field {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   bookings    Booking[]
+  favorites   Favorite[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  fieldId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  field     Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  @@unique([userId, fieldId])
 }
 
 model Booking {

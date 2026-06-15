@@ -5,7 +5,7 @@ import { getPaginationParams } from "../utils/pagination";
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const params = getPaginationParams(req.query.page as string, req.query.limit as string);
-    const result = await getAllFields(params);
+    const result = await getAllFields(params, req.user?.id);
     res.json(result);
   } catch (error) {
     next(error);
@@ -14,7 +14,7 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
 
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const field = await getFieldById(Number(req.params.id));
+    const field = await getFieldById(Number(req.params.id), req.user?.id);
     res.json(field);
   } catch (error) {
     next(error);
@@ -65,7 +65,7 @@ export const search = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const query = (req.query.q as string) || "";
     const params = getPaginationParams(req.query.page as string, req.query.limit as string);
-    const result = await searchFields(query, params);
+    const result = await searchFields(query, params, req.user?.id);
     res.json(result);
   } catch (error) {
     next(error);
