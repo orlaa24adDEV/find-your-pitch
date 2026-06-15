@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../config/db";
-import { registerUser, loginUser, refreshTokens, getUserById, updateUser, changeUserPassword, updateAvatarUrl } from "../services/auth.service";
+import { registerUser, loginUser, refreshTokens, getUserById, updateUser, changeUserPassword, updateAvatarUrl, forgotPassword, resetPassword } from "../services/auth.service";
 import { compressAvatar } from "../utils/compressImage";
 
 const REFRESH_COOKIE = "refreshToken";
@@ -116,6 +116,30 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
       accessToken: result.accessToken,
       user: result.user,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPasswordHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body;
+    const resetUrl = await forgotPassword(email);
+    const response: any = { message: "Si el email está registrado, recibirás un enlace para restablecer tu contraseña" };
+    if (resetUrl) {
+      response.resetUrl = resetUrl;
+    }
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPasswordHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token, password } = req.body;
+    await resetPassword(token, password);
+    res.json({ message: "Contraseña restablecida correctamente" });
   } catch (error) {
     next(error);
   }

@@ -7,6 +7,8 @@ import ToastContainer from "./components/ToastContainer";
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FieldDetail = lazy(() => import("./pages/FieldDetail"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
@@ -40,6 +42,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/fields/:id" element={<FieldDetail />} />
           <Route path="/payment/:bookingId" element={<PaymentPage />} />

@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import prisma from "../config/db";
+import { sendPasswordResetEmail } from "../utils/email";
 
 const generateTokens = (userId: number, email: string, role: string) => {
   const accessToken = jwt.sign(
@@ -110,6 +112,59 @@ export const changeUserPassword = async (
     where: { id },
     data: { password: hashedPassword },
     select: { id: true, name: true, email: true, role: true, age: true, avatarUrl: true },
+  });
+};
+
+export const forgotPassword = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return null;
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  await prisma.passwordResetToken.create({
+    data: {
+      email,
+      token: hashedToken,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    },
+  });
+
+  const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+  const resetUrl = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+  try {
+    await sendPasswordResetEmail(email, resetUrl);
+  } catch (err) {
+    console.error("Failed to send password reset email:", err);
+  }
+
+  return process.env.NODE_ENV === "production" ? null : resetUrl;
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const resetToken = await prisma.passwordResetToken.findFirst({
+    where: {
+      token: hashedToken,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!resetToken) {
+    throw Object.assign(new Error("Token inválido o expirado"), { statusCode: 400 });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { email: resetToken.email },
+    data: { password: hashedPassword },
+  });
+
+  await prisma.passwordResetToken.delete({
+    where: { id: resetToken.id },
   });
 };
 

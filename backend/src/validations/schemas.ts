@@ -50,6 +50,15 @@ export const updateFieldSchema = z.object({
   lng: z.number().optional(),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "El token es requerido"),
+  password: passwordRule,
+});
+
 export const createBookingSchema = z.object({
   date: z.string().refine(val => !isNaN(Date.parse(val)), "Fecha inválida"),
   startTime: z.string().min(1, "La hora de inicio es requerida"),
