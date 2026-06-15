@@ -21,7 +21,7 @@ const generateTokens = (userId: number, email: string, role: string) => {
 export const registerUser = async (name: string, email: string, password: string, age?: number) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw Object.assign(new Error("Email already in use"), { statusCode: 400 });
+    throw Object.assign(new Error("Email already in use"), { statusCode: 409 });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

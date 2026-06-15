@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: findyourpitch-db
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: findyourpitch-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env.docker
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/findyourpitch?schema=public
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      db:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    container_name: findyourpitch-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

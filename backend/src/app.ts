@@ -9,7 +9,6 @@ import { errorHandler } from "./middlewares/error.middleware";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -39,9 +38,5 @@ app.use("/images", express.static("public/images"));
 app.use("/api", router);
 
 app.use(errorHandler);
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
 export default app;

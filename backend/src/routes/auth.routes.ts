@@ -7,7 +7,15 @@ import { uploadAvatar } from "../middlewares/upload.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema } from "../validations/schemas";
 
-const authLimiter = rateLimit({
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { status: "error", statusCode: 429, message: "Demasiados intentos. Intenta de nuevo en 15 minutos" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { status: "error", statusCode: 429, message: "Demasiados intentos. Intenta de nuevo en 15 minutos" },
@@ -25,10 +33,9 @@ const refreshLimiter = rateLimit({
 
 const router = Router();
 
-router.post("/register", authLimiter, validate(registerSchema), register);
-router.post("/login", authLimiter, validate(loginSchema), login);
+router.post("/register", registerLimiter, validate(registerSchema), register);
+router.post("/login", loginLimiter, validate(loginSchema), login);
 router.post("/refresh", refreshLimiter, refresh);
-router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", authenticate, getProfile);
 router.put("/me", authenticate, validate(updateProfileSchema), updateProfile);
