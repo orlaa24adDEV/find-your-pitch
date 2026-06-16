@@ -3,3 +3,7 @@ dist/
 .env
 .env.test
 *.log
+public/images/avatars/*
+!public/images/avatars/.gitkeep
+public/images/fields/*
+!public/images/fields/.gitkeep
