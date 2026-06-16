@@ -10,8 +10,15 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const [mobileAvatarError, setMobileAvatarError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAvatarError(false);
+    setMobileAvatarError(false);
+  }, [user?.avatarUrl]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -62,12 +69,12 @@ const Navbar = () => {
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="focus:outline-none"
                   >
-                    {user?.avatarUrl ? (
+                    {user?.avatarUrl && !avatarError ? (
                       <img
                         src={`${API_URL}${user.avatarUrl}`}
                         alt="Avatar"
-                        loading="lazy"
                         decoding="async"
+                        onError={() => setAvatarError(true)}
                         className="w-9 h-9 rounded-full object-cover border-2 border-ink-100 hover:border-pitch transition-colors"
                       />
                     ) : (
@@ -127,12 +134,12 @@ const Navbar = () => {
                   onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
                   className="focus:outline-none"
                 >
-                  {user?.avatarUrl ? (
+                  {user?.avatarUrl && !mobileAvatarError ? (
                     <img
                       src={`${API_URL}${user.avatarUrl}`}
                       alt="Avatar"
-                      loading="lazy"
                       decoding="async"
+                      onError={() => setMobileAvatarError(true)}
                       className="w-8 h-8 rounded-full object-cover border-2 border-ink-100"
                     />
                   ) : (
