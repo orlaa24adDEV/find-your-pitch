@@ -7,7 +7,7 @@ const Footer = () => (
         </p>
         <div className="flex items-center gap-4">
           <a
-            href="https://github.com/orlaa24ad"
+            href="https://github.com/orlaa24adDEV"
             target="_blank"
             rel="noopener noreferrer"
             className="text-ink-300 hover:text-pitch transition-colors"
