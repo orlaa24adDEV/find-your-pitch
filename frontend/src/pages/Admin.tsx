@@ -587,7 +587,7 @@ const Admin = () => {
           {/* Users table */}
           <div className="space-y-3">
             {users.map((user) => (
-              <Card key={user.id} className="flex items-center justify-between gap-4">
+              <Card key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <h3 className="font-semibold text-ink truncate">{user.name}</h3>
