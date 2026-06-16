@@ -58,7 +58,7 @@ const Profile = () => {
   };
 
   const handleCroppedSave = async (blob: Blob) => {
-    const file = new File([blob], "avatar.png", { type: "image/png" });
+    const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
     const formData = new FormData();
     formData.append("avatar", file);
     setAvatarSaving(true);
@@ -187,6 +187,8 @@ const Profile = () => {
               <img
                 src={`${API_URL}${avatarUrl}`}
                 alt="Avatar"
+                loading="lazy"
+                decoding="async"
                 className="w-20 h-20 rounded-full object-cover border-2 border-ink-100"
               />
             ) : (

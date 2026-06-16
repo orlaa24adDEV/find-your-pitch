@@ -335,6 +335,8 @@ const Admin = () => {
                       <img
                         src={form.imageUrl.startsWith("http") ? form.imageUrl : `${API_URL}${form.imageUrl}`}
                         alt="Preview"
+                        loading="lazy"
+                        decoding="async"
                         className="w-24 h-16 rounded-lg object-cover border border-ink-200"
                       />
                     ) : (
@@ -418,10 +420,12 @@ const Admin = () => {
               <Card key={field.id} className="flex items-center gap-4">
                 {field.imageUrl ? (
                   <img
-                    src={field.imageUrl.startsWith("http") ? field.imageUrl : `${API_URL}${field.imageUrl}`}
-                    alt={field.name}
-                    className="w-16 h-12 rounded-lg object-cover shrink-0"
-                  />
+                      src={field.imageUrl.startsWith("http") ? field.imageUrl : `${API_URL}${field.imageUrl}`}
+                      alt={field.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-20 h-20 object-cover rounded"
+                    />
                 ) : (
                   <div className="w-16 h-12 rounded-lg bg-ink-100 flex items-center justify-center text-xs text-ink-500 shrink-0">
                     Sin img

@@ -66,6 +66,8 @@ const Navbar = () => {
                       <img
                         src={`${API_URL}${user.avatarUrl}`}
                         alt="Avatar"
+                        loading="lazy"
+                        decoding="async"
                         className="w-9 h-9 rounded-full object-cover border-2 border-ink-100 hover:border-pitch transition-colors"
                       />
                     ) : (
@@ -129,6 +131,8 @@ const Navbar = () => {
                     <img
                       src={`${API_URL}${user.avatarUrl}`}
                       alt="Avatar"
+                      loading="lazy"
+                      decoding="async"
                       className="w-8 h-8 rounded-full object-cover border-2 border-ink-100"
                     />
                   ) : (

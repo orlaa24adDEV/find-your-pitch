@@ -21,7 +21,10 @@ const fileFilter = (
   if (allowed.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error("Solo se permiten imágenes JPG, PNG o WebP"));
+    const err = new Error("Solo se permiten imágenes JPG, PNG o WebP");
+    err.name = "MulterError";
+    (err as any).code = "LIMIT_UNEXPECTED_FILE";
+    cb(err);
   }
 };
 
@@ -38,7 +41,7 @@ const fieldStorage = multer.diskStorage({
 export const uploadAvatar = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 export const uploadFieldImage = multer({

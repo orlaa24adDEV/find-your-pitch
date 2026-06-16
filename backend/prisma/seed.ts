@@ -9,7 +9,7 @@ const toImageUrl = (name: string) => {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-  return `/images/${slug}.png`;
+  return `/images/${slug}.webp`;
 };
 
 const fields = [

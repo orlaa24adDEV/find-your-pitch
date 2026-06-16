@@ -43,8 +43,8 @@ const createCroppedBlob = async (
         if (blob) resolve(blob);
         else reject(new Error("Canvas toBlob failed"));
       },
-      "image/png",
-      1
+      "image/jpeg",
+      0.85
     );
   });
 };

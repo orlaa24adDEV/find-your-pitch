@@ -280,6 +280,8 @@ const Home = () => {
                         <img
                           src={`${API_URL}${field.imageUrl}`}
                           alt={field.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = "none";
