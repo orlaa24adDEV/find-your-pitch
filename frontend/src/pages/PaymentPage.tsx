@@ -5,6 +5,8 @@ import { getBookingById, payBooking } from "../services/booking.service";
 import { Booking } from "../interfaces/Booking";
 import Button from "../components/ui/Button";
 
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
+
 type PaymentMethod = "card" | "paypal" | "applepay";
 
 const calcHours = (start: string, end: string) => {
@@ -133,7 +135,7 @@ const PaymentPage = () => {
             <div className="h-36 bg-gradient-to-br from-pitch-100 to-pitch-200 flex items-center justify-center">
               {field.imageUrl ? (
                 <img
-                  src={`http://localhost:3000${field.imageUrl}`}
+                  src={`${API_URL}${field.imageUrl}`}
                   alt={field.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {

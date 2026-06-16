@@ -9,6 +9,8 @@ import Button from "../components/ui/Button";
 import Pagination from "../components/ui/Pagination";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
+
 const statusBadge = (status: string) => {
   switch (status) {
     case "confirmed":
@@ -200,7 +202,7 @@ const Dashboard = () => {
                   <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-pitch-100 to-pitch-200">
                     {field.imageUrl ? (
                       <img
-                        src={`http://localhost:3000${field.imageUrl}`}
+                        src={`${API_URL}${field.imageUrl}`}
                         alt={field.name}
                         className="w-full h-full object-cover"
                       />

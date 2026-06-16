@@ -11,6 +11,8 @@ import DatePicker from "../components/ui/DatePicker";
 import TimePicker from "../components/ui/TimePicker";
 import MapPreview from "../components/MapPreview";
 
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
+
 const timeToMinutes = (t: string) => {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
@@ -165,7 +167,7 @@ const FieldDetail = () => {
       <div className="h-64 rounded-xl overflow-hidden mb-8 flex items-center justify-center bg-gradient-to-br from-pitch-100 to-pitch-200">
         {field.imageUrl ? (
           <img
-            src={`http://localhost:3000${field.imageUrl}`}
+            src={`${API_URL}${field.imageUrl}`}
             alt={field.name}
             className="w-full h-full object-cover"
             onError={(e) => {

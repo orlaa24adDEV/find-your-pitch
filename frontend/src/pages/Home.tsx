@@ -9,6 +9,8 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Pagination from "../components/ui/Pagination";
 
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
+
 const HeartIcon = ({ filled, onClick }: { filled: boolean; onClick: () => void }) => (
   <button
     type="button"
@@ -276,7 +278,7 @@ const Home = () => {
                     <div className="h-40 rounded-lg mb-4 overflow-hidden flex items-center justify-center bg-gradient-to-br from-pitch-100 to-pitch-200">
                       {field.imageUrl ? (
                         <img
-                          src={`http://localhost:3000${field.imageUrl}`}
+                          src={`${API_URL}${field.imageUrl}`}
                           alt={field.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
