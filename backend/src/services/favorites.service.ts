@@ -41,7 +41,7 @@ export const getUserFavorites = async (
   ]);
 
   return paginatedResult(
-    data.map((f) => f.field),
+    data.map((f: { field: { id: number; name: string; sport: string; location: string; priceHour: number; imageUrl: string | null } }) => f.field),
     total,
     params
   );
@@ -52,5 +52,5 @@ export const getFavoriteIds = async (userId: number): Promise<number[]> => {
     where: { userId },
     select: { fieldId: true },
   });
-  return favorites.map((f) => f.fieldId);
+  return favorites.map((f: { fieldId: number }) => f.fieldId);
 };

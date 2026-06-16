@@ -45,7 +45,7 @@ export const getAllFields = async (params: PaginationParams, userId?: number, fi
   let favoriteIds: number[] = [];
   if (userId) {
     const favs = await prisma.favorite.findMany({ where: { userId }, select: { fieldId: true } });
-    favoriteIds = favs.map((f) => f.fieldId);
+    favoriteIds = favs.map((f: { fieldId: number }) => f.fieldId);
   }
 
   return paginatedResult(addFavorited(data, favoriteIds), total, params);
@@ -93,7 +93,7 @@ export const searchFields = async (query: string, params: PaginationParams, user
   let favoriteIds: number[] = [];
   if (userId) {
     const favs = await prisma.favorite.findMany({ where: { userId }, select: { fieldId: true } });
-    favoriteIds = favs.map((f) => f.fieldId);
+    favoriteIds = favs.map((f: { fieldId: number }) => f.fieldId);
   }
 
   return paginatedResult(addFavorited(data, favoriteIds), total, params);
@@ -118,7 +118,7 @@ export const getFieldAvailability = async (fieldId: number, date: string) => {
 
   return {
     date,
-    bookedSlots: bookings.map((b) => ({ startTime: b.startTime, endTime: b.endTime })),
+    bookedSlots: bookings.map((b: { startTime: string; endTime: string }) => ({ startTime: b.startTime, endTime: b.endTime })),
   };
 };
 
@@ -128,7 +128,7 @@ export const getDistinctSports = async (): Promise<string[]> => {
     distinct: ["sport"],
     orderBy: { sport: "asc" },
   });
-  return result.map((r) => r.sport);
+  return result.map((r: { sport: string }) => r.sport);
 };
 
 export const updateField = async (
