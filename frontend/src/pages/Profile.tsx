@@ -65,9 +65,7 @@ const Profile = () => {
     setError("");
     setCropImage(null);
     try {
-      const response = await api.post("/auth/me/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.post("/auth/me/avatar", formData);
       const newAvatarUrl = response.data.avatarUrl;
       setAvatarUrl(newAvatarUrl);
       updateUser(response.data);

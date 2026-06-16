@@ -46,8 +46,6 @@ export const deleteField = async (id: number): Promise<void> => {
 export const uploadFieldImage = async (id: number, file: File): Promise<Field> => {
   const formData = new FormData();
   formData.append("image", file);
-  const response = await api.post(`/fields/${id}/image`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const response = await api.post(`/fields/${id}/image`, formData);
   return response.data;
 };
