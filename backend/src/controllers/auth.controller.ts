@@ -16,7 +16,11 @@ const setRefreshCookie = (res: Response, token: string) => {
 };
 
 const clearRefreshCookie = (res: Response) => {
-  res.clearCookie(REFRESH_COOKIE, { path: "/api/auth" });
+  res.clearCookie(REFRESH_COOKIE, {
+    path: "/api/auth",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 };
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
