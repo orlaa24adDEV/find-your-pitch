@@ -139,7 +139,7 @@ export const forgotPassword = async (email: string) => {
     console.error("Failed to send password reset email:", err);
   }
 
-  return process.env.NODE_ENV === "production" ? null : resetUrl;
+  return resetUrl;
 };
 
 export const resetPassword = async (token: string, newPassword: string) => {
