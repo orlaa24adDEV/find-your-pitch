@@ -21,14 +21,15 @@ const generateTokens = (userId: number, email: string, role: string) => {
 };
 
 export const registerUser = async (name: string, email: string, password: string, age?: number) => {
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const normalizedEmail = email.toLowerCase().trim();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
     throw Object.assign(new Error("Email already in use"), { statusCode: 409 });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, password: hashedPassword, age },
+    data: { name, email: normalizedEmail, password: hashedPassword, age },
   });
 
   const tokens = generateTokens(user.id, user.email, user.role);
@@ -40,7 +41,7 @@ export const registerUser = async (name: string, email: string, password: string
 };
 
 export const loginUser = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
   if (!user) {
     throw Object.assign(new Error("Credenciales Invalidas"), { statusCode: 401 });
   }
@@ -116,7 +117,7 @@ export const changeUserPassword = async (
 };
 
 export const forgotPassword = async (email: string) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
   if (!user) return null;
 
   const rawToken = crypto.randomBytes(32).toString("hex");
