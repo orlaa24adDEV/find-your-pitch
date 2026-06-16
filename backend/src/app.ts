@@ -26,15 +26,14 @@ app.use(helmet({
     },
   },
 }));
-const allowedOrigins = [
-  FRONTEND_URL,
-  "https://findyourpitch.vercel.app",
-  "http://localhost:5173",
-];
-
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      origin === FRONTEND_URL ||
+      origin === "http://localhost:5173" ||
+      origin.endsWith(".vercel.app")
+    ) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
