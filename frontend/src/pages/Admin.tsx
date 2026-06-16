@@ -4,15 +4,17 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { Field } from "../interfaces/Field";
 import { Booking } from "../interfaces/Booking";
+import { User } from "../interfaces/User";
 import { getFields } from "../services/fields.service";
 import { getAllBookings, createField, updateField, deleteField, uploadFieldImage } from "../services/admin.service";
+import { getAllUsers, getUserBookings, deleteUser, updateUserRole } from "../services/users.service";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Pagination from "../components/ui/Pagination";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api$/, "");
 
-type Tab = "fields" | "bookings";
+type Tab = "fields" | "bookings" | "users";
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -66,6 +68,16 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+  const [userSearch, setUserSearch] = useState("");
+  const [bookingModalUser, setBookingModalUser] = useState<User | null>(null);
+  const [userBookings, setUserBookings] = useState<Booking[]>([]);
+  const [userBookingsPage, setUserBookingsPage] = useState(1);
+  const [userBookingsTotalPages, setUserBookingsTotalPages] = useState(1);
+  const [userBookingsLoading, setUserBookingsLoading] = useState(false);
+
   const [editingField, setEditingField] = useState<Field | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
@@ -89,6 +101,17 @@ const Admin = () => {
   const [form, setForm] = useState(emptyForm);
   const [imageUploading, setImageUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchUsers = async (p = 1, search?: string) => {
+    try {
+      const result = await getAllUsers(p, 20, search);
+      setUsers(result.data);
+      setUsersPage(result.page);
+      setUsersTotalPages(result.totalPages);
+    } catch {
+      setError("Error al cargar usuarios");
+    }
+  };
 
   const fetchFields = async (p = 1) => {
     try {
@@ -118,8 +141,10 @@ const Admin = () => {
     try {
       if (tab === "fields") {
         await fetchFields();
-      } else {
+      } else if (tab === "bookings") {
         await fetchBookings();
+      } else {
+        await fetchUsers(1, userSearch);
       }
     } finally {
       setLoading(false);
@@ -134,6 +159,52 @@ const Admin = () => {
     setForm(emptyForm);
     setEditingField(null);
     setFormOpen(true);
+  };
+
+  const openUserBookings = async (user: User, p = 1) => {
+    setBookingModalUser(user);
+    setUserBookingsLoading(true);
+    try {
+      const result = await getUserBookings(user.id, p, 10);
+      setUserBookings(result.data);
+      setUserBookingsPage(result.page);
+      setUserBookingsTotalPages(result.totalPages);
+    } catch {
+      addToast("Error al cargar reservas del usuario", "error");
+    } finally {
+      setUserBookingsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: number, name: string) => {
+    if (!window.confirm(`¿Eliminar al usuario "${name}" y todas sus reservas?`)) return;
+    try {
+      await deleteUser(id);
+      addToast("Usuario eliminado", "success");
+      await fetchUsers(usersPage, userSearch);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response: { data: { message: string } } }).response.data.message)
+          : "Error al eliminar usuario";
+      addToast(msg, "error");
+    }
+  };
+
+  const handleToggleRole = async (id: number, currentRole: string, name: string) => {
+    const newRole = currentRole === "admin" ? "user" : "admin";
+    if (!window.confirm(`¿Cambiar "${name}" a rol "${newRole}"?`)) return;
+    try {
+      await updateUserRole(id, newRole);
+      addToast(`Rol cambiado a ${newRole}`, "success");
+      await fetchUsers(usersPage, userSearch);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response: { data: { message: string } } }).response.data.message)
+          : "Error al cambiar rol";
+      addToast(msg, "error");
+    }
   };
 
   const openEdit = (field: Field) => {
@@ -262,6 +333,16 @@ const Admin = () => {
           }`}
         >
           Reservas ({bookings.length})
+        </button>
+        <button
+          onClick={() => setTab("users")}
+          className={`pb-3 text-sm font-medium transition-colors ${
+            tab === "users"
+              ? "text-pitch border-b-2 border-pitch"
+              : "text-ink-600 hover:text-ink"
+          }`}
+        >
+          Usuarios ({users.length})
         </button>
       </div>
 
@@ -487,6 +568,105 @@ const Admin = () => {
           )}
           <Pagination page={bookingsPage} totalPages={bookingsTotalPages} onPageChange={(p) => { fetchBookings(p); }} />
         </div>
+      )}
+
+      {tab === "users" && (
+        <>
+          {/* Search */}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") fetchUsers(1, userSearch); }}
+              placeholder="Buscar por nombre o email..."
+              className="w-full max-w-md px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pitch"
+            />
+          </div>
+
+          {/* Users table */}
+          <div className="space-y-3">
+            {users.map((user) => (
+              <Card key={user.id} className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-semibold text-ink truncate">{user.name}</h3>
+                    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${
+                      user.role === "admin"
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-ink-100 text-ink-600"
+                    }`}>
+                      {user.role === "admin" ? "Admin" : "User"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-ink-600 truncate">{user.email}</p>
+                  <p className="text-xs text-ink-500 mt-0.5">
+                    Registrado: {formatDate(user.createdAt)}
+                    {user.age != null && ` · Edad: ${user.age}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => openUserBookings(user)}>
+                    Reservas
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleToggleRole(user.id, user.role, user.name)}>
+                    {user.role === "admin" ? "Quitar admin" : "Hacer admin"}
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteUser(user.id, user.name)}>
+                    Eliminar
+                  </Button>
+                </div>
+              </Card>
+            ))}
+            {users.length === 0 && (
+              <p className="text-center text-ink-600 py-8">No hay usuarios</p>
+            )}
+            <Pagination page={usersPage} totalPages={usersTotalPages} onPageChange={(p) => { fetchUsers(p, userSearch); }} />
+          </div>
+
+          {/* User bookings modal */}
+          {bookingModalUser && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setBookingModalUser(null)}>
+              <div className="bg-white rounded-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-ink">
+                    Reservas de {bookingModalUser.name}
+                  </h2>
+                  <button onClick={() => setBookingModalUser(null)} className="text-ink-500 hover:text-ink text-xl leading-none">&times;</button>
+                </div>
+                {userBookingsLoading ? (
+                  <div className="text-center py-8 text-ink-600">Cargando...</div>
+                ) : (
+                  <div className="space-y-3">
+                    {userBookings.map((b) => (
+                      <Card key={b.id} className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="font-semibold text-ink">
+                              {b.field?.name || `Campo #${b.fieldId}`}
+                            </h3>
+                            {statusBadge(b.status)}
+                          </div>
+                          <p className="text-sm text-ink-600">
+                            {formatDate(b.date)} &middot; {b.startTime} - {b.endTime}
+                          </p>
+                        </div>
+                      </Card>
+                    ))}
+                    {userBookings.length === 0 && (
+                      <p className="text-center text-ink-600 py-4">Sin reservas</p>
+                    )}
+                    <Pagination
+                      page={userBookingsPage}
+                      totalPages={userBookingsTotalPages}
+                      onPageChange={(p) => openUserBookings(bookingModalUser, p)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
