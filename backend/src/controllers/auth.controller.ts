@@ -60,7 +60,7 @@ export const uploadAvatarHandler = async (req: Request, res: Response, next: Nex
       return res.status(400).json({ message: "No se seleccionó ninguna imagen" });
     }
     const newFilename = await compressAvatar(req.file.path);
-    const avatarUrl = `/images/avatars/${newFilename}`;
+    const avatarUrl = `/data/images/avatars/${newFilename}`;
     const user = await updateAvatarUrl(req.user!.id, avatarUrl);
     res.json(user);
   } catch (error) {

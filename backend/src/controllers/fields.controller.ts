@@ -60,7 +60,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     if (!req.file) {
       return res.status(400).json({ message: "No se seleccionó ninguna imagen" });
     }
-    const imageUrl = `/images/fields/${req.file.filename}`;
+    const imageUrl = `/data/images/fields/${req.file.filename}`;
     const field = await updateFieldImage(Number(req.params.id), imageUrl);
     res.json(field);
   } catch (error) {

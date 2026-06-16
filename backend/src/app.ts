@@ -47,6 +47,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/images", express.static("public/images"));
+app.use("/data", express.static("data"));
 
 app.use("/api", router);
 

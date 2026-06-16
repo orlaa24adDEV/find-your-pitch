@@ -56,7 +56,7 @@ describe("Navbar", () => {
   });
 
   it("shows avatar image when avatarUrl is provided", () => {
-    mockAuth = { user: { name: "User", role: "user", avatarUrl: "/images/avatars/test.webp" }, isAuthenticated: true, logout: mockLogout };
+    mockAuth = { user: { name: "User", role: "user", avatarUrl: "/data/images/avatars/test.webp" }, isAuthenticated: true, logout: mockLogout };
     renderNavbar();
     const avatars = screen.getAllByAltText("Avatar");
     expect(avatars.length).toBeGreaterThanOrEqual(1);
