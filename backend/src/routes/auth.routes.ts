@@ -33,7 +33,7 @@ const refreshLimiter = rateLimit({
 
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3,
+  max: 5,
   message: { status: "error", statusCode: 429, message: "Demasiados intentos. Intenta de nuevo en 15 minutos" },
   standardHeaders: true,
   legacyHeaders: false,
