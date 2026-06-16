@@ -133,10 +133,12 @@ export const forgotPassword = async (email: string) => {
   const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
   const resetUrl = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
 
-  try {
-    await sendPasswordResetEmail(email, resetUrl);
-  } catch (err) {
-    console.error("Failed to send password reset email:", err);
+  if (process.env.SMTP_HOST) {
+    try {
+      await sendPasswordResetEmail(email, resetUrl);
+    } catch (err) {
+      console.error("Failed to send password reset email:", err);
+    }
   }
 
   return resetUrl;
