@@ -12,6 +12,7 @@ export const registerSchema = z.object({
   email: z.string().email("Email inválido"),
   password: passwordRule,
   age: z.number().int().min(1).max(120).optional(),
+  adminKey: z.string().optional(),
 });
 
 export const loginSchema = z.object({

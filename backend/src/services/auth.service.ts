@@ -20,16 +20,17 @@ const generateTokens = (userId: number, email: string, role: string) => {
   return { accessToken, refreshToken };
 };
 
-export const registerUser = async (name: string, email: string, password: string, age?: number) => {
+export const registerUser = async (name: string, email: string, password: string, age?: number, adminKey?: string) => {
   const normalizedEmail = email.toLowerCase().trim();
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
     throw Object.assign(new Error("Email already in use"), { statusCode: 409 });
   }
 
+  const role = adminKey && adminKey === process.env.ADMIN_KEY ? "admin" : "user";
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email: normalizedEmail, password: hashedPassword, age },
+    data: { name, email: normalizedEmail, password: hashedPassword, age, role },
   });
 
   const tokens = generateTokens(user.id, user.email, user.role);

@@ -50,6 +50,8 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
 
 export const uploadAvatarHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log("[avatar] content-type:", req.headers["content-type"]);
+    console.log("[avatar] file:", req.file ? `${req.file.originalname} ${req.file.size}` : "undefined");
     if (!req.file) {
       return res.status(400).json({ message: "No se seleccionó ninguna imagen" });
     }
@@ -77,8 +79,8 @@ export const promoteToAdmin = async (req: Request, res: Response, next: NextFunc
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, age } = req.body;
-    const result = await registerUser(name, email, password, age);
+    const { name, email, password, age, adminKey } = req.body;
+    const result = await registerUser(name, email, password, age, adminKey);
     setRefreshCookie(res, result.refreshToken);
     res.status(201).json({
       accessToken: result.accessToken,
