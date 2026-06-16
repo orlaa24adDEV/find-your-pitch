@@ -70,8 +70,12 @@ const Profile = () => {
       setAvatarUrl(newAvatarUrl);
       updateUser(response.data);
       setSuccess("Foto de perfil actualizada");
-    } catch {
-      setError("Error al subir la imagen");
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response: { data: { message: string } } }).response.data.message)
+          : "Error al subir la imagen";
+      setError(msg);
     } finally {
       setAvatarSaving(false);
     }

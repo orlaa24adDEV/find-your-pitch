@@ -183,8 +183,12 @@ const Admin = () => {
       if (editingField?.id === id) {
         setForm((prev) => ({ ...prev, imageUrl: updated.imageUrl || "" }));
       }
-    } catch {
-      setError("Error al subir la imagen");
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response: { data: { message: string } } }).response.data.message)
+          : "Error al subir la imagen";
+      setError(msg);
     } finally {
       setImageUploading(false);
     }
