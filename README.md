@@ -101,6 +101,7 @@ cd frontend && npm test
 | `SMTP_USER` | Usuario SMTP |
 | `SMTP_PASS` | Contraseña SMTP |
 | `SMTP_FROM` | Dirección remitente |
+| `ADMIN_KEY` | Clave secreta para registrarse como admin en `POST /auth/register` |
 | `NODE_ENV` | `development` o `production` |
 
 ### Autenticación
@@ -139,10 +140,11 @@ La API usa **doble token JWT** para seguridad:
 | GET | `/api/auth/me` | Bearer | Obtener perfil |
 | PUT | `/api/auth/me` | Bearer | Actualizar perfil (name, email, age) |
 | PUT | `/api/auth/me/password` | Bearer | Cambiar contraseña |
-| POST | `/api/auth/me/avatar` | Bearer | Subir foto de perfil (multipart, max 2MB) |
+| POST | `/api/auth/me/avatar` | Bearer | Subir foto de perfil (multipart, max 5MB, se comprime a WebP) |
 | POST | `/api/auth/forgot-password` | — | Solicitar restablecimiento de contraseña |
 | POST | `/api/auth/reset-password` | — | Restablecer contraseña con token |
 | POST | `/api/auth/promote/:id` | Admin | Promover usuario a admin |
+| POST | `/api/auth/register` (con `adminKey`) | — | Registrarse como admin si `adminKey` coincide con `ADMIN_KEY` del entorno |
 
 #### Fields
 | Método | Ruta | Auth | Descripción |
@@ -168,6 +170,15 @@ La API usa **doble token JWT** para seguridad:
 | GET | `/api/bookings/all?page=&limit=` | Admin | Todas las reservas |
 | DELETE | `/api/bookings/:id` | Bearer | Cancelar reserva |
 | POST | `/api/bookings/:id/pay` | Bearer | Pagar reserva (simulado, 2s) |
+
+#### Users (requieren autenticación + admin)
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| GET | `/api/users?page=&limit=&search=` | Admin | Listar usuarios (búsqueda por nombre/email) |
+| GET | `/api/users/:id` | Admin | Detalle de usuario con sus reservas |
+| GET | `/api/users/:id/bookings?page=&limit=` | Admin | Reservas de un usuario específico |
+| DELETE | `/api/users/:id` | Admin | Eliminar usuario (con sus reservas) |
+| PUT | `/api/users/:id/role` | Admin | Cambiar rol (`user` ↔ `admin`) |
 
 #### Favorites (requieren autenticación)
 | Método | Ruta | Auth | Descripción |
@@ -209,10 +220,12 @@ Booking
 
 ### Imágenes
 
-- Las imágenes se sirven desde `backend/public/images/` via `express.static`
-- **Campos:** `backend/public/images/fields/` — subida por admin (multipart, max 5MB)
-- **Avatares:** `backend/public/images/avatars/` — subida por usuario (multipart, max 2MB)
-- Los avatares se comprimen automáticamente con Sharp (WebP 500×500, calidad 80)
+- **Imágenes semilla** (20 campos de Málaga): `backend/public/images/*.webp` — vienen en la imagen Docker, siempre disponibles
+- **Imágenes subidas** (avatares, imágenes de campo): `backend/data/images/` via `express.static("data")` — se almacenan en Railway Volume para persistencia entre redeploys
+- **Campos:** `data/images/fields/` — subida por admin (multipart, max 5MB)
+- **Avatares:** `data/images/avatars/` — subida por usuario (multipart, max 5MB)
+- Los avatares se comprimen automáticamente con Sharp (WebP 500×500, calidad 80), el original se elimina
+- Las carpetas `data/images/{avatars,fields}` se crean al iniciar el servidor (`mkdir -p` en server.ts)
 
 ### Scripts disponibles
 
@@ -274,7 +287,7 @@ VITE_API_URL=http://localhost:3000/api
 | `/payment/:id` | Pasarela de pago simulada (tarjeta/PayPal/Apple Pay) |
 | `/dashboard` | Historial de reservas y favoritos |
 | `/profile` | Editar perfil, cambiar contraseña, subir avatar con recorte |
-| `/admin` | Panel admin: CRUD de campos + listado de reservas |
+| `/admin` | Panel admin: CRUD de campos + listado de reservas + gestión de usuarios (buscar, cambiar rol, eliminar, ver reservas) |
 | `*` | Página 404 |
 
 ### Componentes principales
@@ -326,6 +339,9 @@ Al seleccionar una fecha en el detalle del campo, se consultan los slots ocupado
 ### Subida de avatar con compresión
 El usuario selecciona y recorta su foto con react-easy-crop. Se envía al backend como PNG, donde Sharp lo redimensiona a 500×500 y lo convierte a WebP (calidad 80). El archivo original se elimina.
 
+### Panel de Administración
+Tres tabs: **Campos** (CRUD completo con subida de imagen), **Reservas** (todas las reservas del sistema con datos del usuario), **Usuarios** (lista paginada con búsqueda, cambio de rol, eliminación y modal de reservas por usuario).
+
 ### Recuperación de contraseña
 Flujo completo: el usuario introduce su email → backend genera un token SHA-256 con expiración de 1h → en desarrollo se muestra la URL en pantalla; en producción se envía por email (Nodemailer con Ethereal por defecto, configurable con SMTP real).
 
@@ -335,3 +351,5 @@ Flujo completo: el usuario introduce su email → backend genera un token SHA-25
 - Rate limiting por endpoint
 - Zod validation en todas las entradas
 - Multer con límites de tamaño y filtro de extensiones
+- **ADMIN_KEY**: registro seguro de administradores. Sin la clave, el rol siempre es `"user"`
+- **clearCookie** con mismas opciones (sameSite, secure) que la cookie original para logout efectivo
