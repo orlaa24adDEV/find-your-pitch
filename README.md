@@ -7,7 +7,7 @@ Plataforma para reservas deportivas.
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite, Axios
 - **Backend:** Node.js, Express.js, TypeScript, JWT, Nodemailer
 - **Base de Datos:** PostgreSQL + Prisma ORM
-- **DevOps:** Docker, Vercel (front), Railway (back)
+- **DevOps:** Docker, Vercel (front), Railway (back), GitHub Actions (CI)
 - **Testing:** Vitest + Testing Library (frontend), Jest + ts-jest + supertest (backend)
 
 ## Estructura
@@ -35,6 +35,9 @@ find-your-pitch/
 │       ├── pages/
 │       └── services/
 ├── docker-compose.yml
+├── .github/
+│   └── workflows/
+│       └── ci.yml          # CI con GitHub Actions
 └── README.md
 ```
 
@@ -226,6 +229,7 @@ Booking
 - **Avatares:** `data/images/avatars/` — subida por usuario (multipart, max 5MB)
 - Los avatares se comprimen automáticamente con Sharp (WebP 500×500, calidad 80), el original se elimina
 - Las carpetas `data/images/{avatars,fields}` se crean al iniciar el servidor (`mkdir -p` en server.ts)
+- `data/` está excluido de la imagen Docker (`.dockerignore`) para que el Railway Volume monte limpio
 
 ### Scripts disponibles
 
@@ -295,7 +299,7 @@ VITE_API_URL=http://localhost:3000/api
 - **Button:** Variantes primary/outline/danger, tamaños sm/md/lg, estado loading con spinner
 - **Input/PasswordInput:** Campos con label, validación de errores, toggle de visibilidad (`useId()` para accesibilidad)
 - **Card:** Contenedor flexible con sombra y hover
-- **Navbar:** Responsive con hamburger menu en móvil, avatar dropdown, enlaces condicionales (admin vs user)
+- **Navbar:** Responsive con hamburger menu en móvil (avatar con submenú anidado dentro del menú), avatar dropdown en desktop con perfil, navegación y logout
 - **DatePicker:** Calendario personalizado con portal, posicionamiento automático arriba/abajo
 - **TimePicker:** Selector de horas con slots de 30 min, filtro por `minTime` y `disabledRanges` (slots ocupados)
 - **Pagination:** Navegación con páginas, elipsis, botones anterior/siguiente
@@ -327,6 +331,17 @@ VITE_API_URL=http://localhost:3000/api
 | Ink (gris) | `#6B6D6B` | `ink` |
 | Ink 600 (texto) | `#555555` | `ink-600` |
 | Fondo | `#F8FAFC` | `bg-slate-50` |
+
+## CI/CD
+
+El proyecto usa **GitHub Actions** para integración continua. En cada push a `main` se ejecuta el workflow `.github/workflows/ci.yml` que corre en paralelo:
+
+| Job | Servicio | Comandos |
+|---|---|---|
+| `backend` | PostgreSQL 16 (contenedor), Node 22 | `npm ci` → `prisma migrate deploy` → `npm test` |
+| `frontend` | Node 22 | `npm install` → `npm test` |
+
+Los resultados se ven en GitHub → pestaña Actions. Railway y Vercel despliegan automáticamente al detectar cambios en `main`.
 
 ## Funcionalidades destacadas
 
