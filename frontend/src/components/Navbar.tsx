@@ -45,23 +45,6 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-6">
             {isAuthenticated ? (
               <>
-                {user?.role !== "admin" && (
-                  <Link
-                    to="/dashboard"
-                    className="text-ink-600 hover:text-pitch transition-colors duration-200"
-                  >
-                    Mis reservas
-                  </Link>
-                )}
-                {user?.role === "admin" && (
-                  <Link
-                    to="/admin"
-                    className="text-ink-600 hover:text-pitch transition-colors duration-200 font-medium"
-                  >
-                    Admin
-                  </Link>
-                )}
-
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -91,6 +74,23 @@ const Navbar = () => {
                       >
                         Mi perfil
                       </Link>
+                      {user?.role !== "admin" ? (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="block px-4 py-2.5 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 transition-colors"
+                        >
+                          Mis reservas
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="block px-4 py-2.5 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 transition-colors font-medium"
+                        >
+                          Admin
+                        </Link>
+                      )}
                       <hr className="border-ink-100" />
                       <button
                         onClick={() => {

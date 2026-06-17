@@ -43,15 +43,19 @@ describe("Navbar", () => {
     expect(avatars.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows admin link for admin user", () => {
+  it("shows admin link for admin user", async () => {
     mockAuth = { user: { name: "Admin", role: "admin", avatarUrl: null }, isAuthenticated: true, logout: mockLogout };
     renderNavbar();
+    const avatars = screen.getAllByText("A");
+    await userEvent.click(avatars[0]);
     expect(screen.getByText("Admin")).toBeInTheDocument();
   });
 
-  it("shows mis reservas link for non-admin user", () => {
+  it("shows mis reservas link for non-admin user", async () => {
     mockAuth = { user: { name: "User", role: "user", avatarUrl: null }, isAuthenticated: true, logout: mockLogout };
     renderNavbar();
+    const avatars = screen.getAllByText("U");
+    await userEvent.click(avatars[0]);
     expect(screen.getByText("Mis reservas")).toBeInTheDocument();
   });
 
