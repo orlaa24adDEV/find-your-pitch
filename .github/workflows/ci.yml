@@ -28,12 +28,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - run: npm ci
         working-directory: backend
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in $(seq 1 30); do
+            pg_isready -h localhost -p 5433 && break
+            sleep 1
+          done
 
       - run: npx prisma migrate deploy
         working-directory: backend
@@ -58,11 +65,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - run: npm ci
+      - run: npm install
         working-directory: frontend
 
       - run: npm test
