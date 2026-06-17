@@ -8,16 +8,14 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
-  const [mobileAvatarError, setMobileAvatarError] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileProfileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setAvatarError(false);
-    setMobileAvatarError(false);
   }, [user?.avatarUrl]);
 
   useEffect(() => {
@@ -25,8 +23,8 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
-      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(e.target as Node)) {
-        setMobileDropdownOpen(false);
+      if (mobileProfileRef.current && !mobileProfileRef.current.contains(e.target as Node)) {
+        setMobileProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -128,50 +126,6 @@ const Navbar = () => {
 
           {/* Mobile section */}
           <div className="md:hidden flex items-center">
-            {isAuthenticated && (
-              <div className="relative mr-2" ref={mobileDropdownRef}>
-                <button
-                  onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-                  className="focus:outline-none"
-                >
-                  {user?.avatarUrl && !mobileAvatarError ? (
-                    <img
-                      src={`${API_URL}${user.avatarUrl}`}
-                      alt="Avatar"
-                      decoding="async"
-                      onError={() => setMobileAvatarError(true)}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-ink-100"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-pitch text-white flex items-center justify-center text-xs font-bold">
-                      {user?.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </button>
-                {mobileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-ink-100 py-1 z-50">
-                    <Link
-                      to="/profile"
-                      onClick={() => setMobileDropdownOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 transition-colors"
-                    >
-                      Mi perfil
-                    </Link>
-                    <hr className="border-ink-100" />
-                    <button
-                      onClick={() => {
-                        setMobileDropdownOpen(false);
-                        logout();
-                        navigate("/");
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:text-red-600 hover:bg-slate-50 transition-colors"
-                    >
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="p-2 text-ink-600 hover:text-ink focus:outline-none"
@@ -195,6 +149,56 @@ const Navbar = () => {
           <div className="md:hidden pb-4 border-t border-ink-100 pt-4 space-y-2">
             {isAuthenticated ? (
               <>
+                <div ref={mobileProfileRef}>
+                  <button
+                    onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    {user?.avatarUrl && !avatarError ? (
+                      <img
+                        src={`${API_URL}${user.avatarUrl}`}
+                        alt=""
+                        decoding="async"
+                        onError={() => setAvatarError(true)}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-ink-100"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-pitch text-white flex items-center justify-center text-xs font-bold shrink-0">
+                        {user?.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-ink font-medium">{user?.name}</span>
+                    <svg
+                      className={`w-4 h-4 ml-auto text-ink-400 transition-transform ${mobileProfileOpen ? "rotate-180" : ""}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {mobileProfileOpen && (
+                    <div className="ml-11 mt-1 space-y-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => { setMenuOpen(false); setMobileProfileOpen(false); }}
+                        className="block px-3 py-2 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        Mi perfil
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setMobileProfileOpen(false);
+                          logout();
+                          navigate("/");
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <hr className="border-ink-100" />
                 {user?.role !== "admin" && (
                   <Link
                     to="/dashboard"
