@@ -65,7 +65,7 @@ const Navbar = () => {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="focus:outline-none"
+                    className="flex items-center justify-center focus:outline-none"
                   >
                     {user?.avatarUrl && !avatarError ? (
                       <img
@@ -184,6 +184,23 @@ const Navbar = () => {
                       >
                         Mi perfil
                       </Link>
+                      {user?.role !== "admin" ? (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => { setMenuOpen(false); setMobileProfileOpen(false); }}
+                          className="block px-3 py-2 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 rounded-lg transition-colors"
+                        >
+                          Mis reservas
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/admin"
+                          onClick={() => { setMenuOpen(false); setMobileProfileOpen(false); }}
+                          className="block px-3 py-2 text-sm text-ink-600 hover:text-ink hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                        >
+                          Admin
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           setMenuOpen(false);
@@ -198,25 +215,6 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
-                <hr className="border-ink-100" />
-                {user?.role !== "admin" && (
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 text-ink-600 hover:text-pitch hover:bg-slate-50 rounded-lg transition-colors"
-                  >
-                    Mis reservas
-                  </Link>
-                )}
-                {user?.role === "admin" && (
-                  <Link
-                    to="/admin"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 text-ink-600 hover:text-pitch hover:bg-slate-50 rounded-lg transition-colors font-medium"
-                  >
-                    Admin
-                  </Link>
-                )}
               </>
             ) : (
               <>
